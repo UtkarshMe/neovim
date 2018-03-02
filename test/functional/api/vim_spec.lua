@@ -1121,6 +1121,8 @@ describe('api', function()
           ext_popupmenu = false,
           ext_tabline = false,
           ext_wildmenu = false,
+          ext_multigrid=false,
+          ext_hlstate=false,
           height = 4,
           rgb = true,
           width = 20,
@@ -1131,17 +1133,9 @@ describe('api', function()
       screen:detach()
       screen = Screen.new(44, 99)
       screen:attach({ rgb = false })
-      expected = {
-        {
-          ext_cmdline = false,
-          ext_popupmenu = false,
-          ext_tabline = false,
-          ext_wildmenu = false,
-          height = 99,
-          rgb = false,
-          width = 44,
-        }
-      }
+      expected[1].rgb = false
+      expected[1].width = 44
+      expected[1].height = 99
       eq(expected, nvim("list_uis"))
     end)
   end)
