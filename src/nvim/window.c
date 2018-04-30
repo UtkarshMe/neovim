@@ -3925,6 +3925,8 @@ win_free (
 
   xfree(wp->w_p_cc_cols);
 
+  win_free_grid(wp, false);
+
   if (wp != aucmd_win)
     win_remove(wp, tp);
   if (autocmd_busy) {
@@ -3935,6 +3937,20 @@ win_free (
   }
 
   unblock_autocmds();
+}
+
+void win_free_grid(win_T *wp, bool reinit)
+{
+  if (wp->w_grid.handle != 0) {
+    ui_call_grid_destroy(wp->w_grid.handle);
+    wp->w_grid.handle = 0;
+  }
+  free_screengrid(&wp->w_grid);
+  if (reinit) {
+    // if a float is turned into a split and back into a float, the grid
+    // data structure will be reused
+    memset(&wp->w_grid, 0, sizeof(wp->w_grid));
+  }
 }
 
 /*
