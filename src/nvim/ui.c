@@ -197,7 +197,7 @@ void ui_refresh(void)
 
   int save_p_lz = p_lz;
   p_lz = false;  // convince redrawing() to return true ...
-  screen_resize(width, height);
+  screen_resize(NULL, width, height);
   p_lz = save_p_lz;
 
   for (UIExtension i = 0; (int)i < kUIExtCount; i++) {
