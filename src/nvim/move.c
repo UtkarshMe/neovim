@@ -147,7 +147,7 @@ void update_topline(void)
   long save_so = p_so;
 
   // need to have w_grid.Rows/Columns updated
-  win_grid_alloc(curwin, false);
+  grid_alloc(&curwin->w_grid, false);
 
   // If there is no valid screen and when the window height is zero just use
   // the cursor line.
