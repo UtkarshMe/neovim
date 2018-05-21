@@ -1479,7 +1479,7 @@ void edit_putchar(int c, int highlight)
         int fix_col = mb_fix_col(pc_col, pc_row);
 
         if (fix_col != pc_col) {
-          screen_putchar(NULL, ' ', pc_row, fix_col, attr);
+          grid_putchar(&default_grid, ' ', pc_row, fix_col, attr);
           (curwin->w_wcol)--;
           pc_status = PC_STATUS_RIGHT;
         }
@@ -1492,10 +1492,10 @@ void edit_putchar(int c, int highlight)
 
     /* save the character to be able to put it back */
     if (pc_status == PC_STATUS_UNSET) {
-      screen_getbytes(NULL, pc_row, pc_col, pc_bytes, &pc_attr);
+      grid_getbytes(&default_grid, pc_row, pc_col, pc_bytes, &pc_attr);
       pc_status = PC_STATUS_SET;
     }
-    screen_putchar(NULL, c, pc_row, pc_col, attr);
+    grid_putchar(&default_grid, c, pc_row, pc_col, attr);
   }
 }
 
@@ -1511,7 +1511,7 @@ void edit_unputchar(void)
     if (pc_status == PC_STATUS_RIGHT || pc_status == PC_STATUS_LEFT) {
       redrawWinline(curwin->w_cursor.lnum, false);
     } else {
-      screen_puts(NULL, pc_bytes, pc_row - msg_scrolled, pc_col, pc_attr);
+      grid_puts(&default_grid, pc_bytes, pc_row - msg_scrolled, pc_col, pc_attr);
     }
   }
 }
