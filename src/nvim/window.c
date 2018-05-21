@@ -4401,6 +4401,7 @@ void win_setwidth_win(int width, win_T *wp)
       width = 1;
   }
 
+  grid_setwidth(&wp->w_grid, width);
   frame_setwidth(wp->w_frame, width + wp->w_vsep_width);
 
   /* recompute the window positions */

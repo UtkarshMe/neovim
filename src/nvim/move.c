@@ -132,7 +132,7 @@ void update_topline(void)
   bool check_botline = false;
   long save_so = p_so;
 
-  if (!screen_valid(NULL, true))
+  if (!screen_valid(true))
     return;
 
   // If the window height is zero, just use the cursor line.

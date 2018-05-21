@@ -879,7 +879,7 @@ void wait_return(int redraw)
   } else {
     /* Make sure the hit-return prompt is on screen when 'guioptions' was
      * just changed. */
-    screenalloc(NULL, false);
+    screenalloc(false);
 
     State = HITRETURN;
     setmouse();
