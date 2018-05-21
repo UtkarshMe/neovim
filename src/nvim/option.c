@@ -4332,7 +4332,7 @@ static char *set_num_option(int opt_idx, char_u *varp, long value,
     if (updating_screen) {
       *pp = old_value;
     } else if (full_screen) {
-      screen_resize(NULL, (int)Columns, (int)Rows);
+      screen_resize((int)Columns, (int)Rows);
     } else {
       // Postpone the resizing; check the size and cmdline position for
       // messages.

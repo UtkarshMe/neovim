@@ -134,7 +134,7 @@ void update_topline(void)
 
   // If there is no valid screen and when the window height is zero just use
   // the cursor line.
-  if (!screen_valid(NULL, true))
+  if (!screen_valid(true))
     return;
 
   // If the window height is zero, just use the cursor line.
