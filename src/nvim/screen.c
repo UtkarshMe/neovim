@@ -4827,7 +4827,7 @@ static void win_redr_status(win_T *wp)
       len += (int)STRLEN(p + len);
     }
 
-    this_ru_col = ru_col - (wp->w_grid.Columns - wp->w_width);
+    this_ru_col = ru_col - (default_grid.Columns - wp->w_width);
     if (this_ru_col < (wp->w_width + 1) / 2) {
       this_ru_col = (wp->w_width + 1) / 2;
     }
@@ -4855,13 +4855,13 @@ static void win_redr_status(win_T *wp)
     }
 
     row = wp->w_winrow + wp->w_height;
-    grid_puts(&wp->w_grid, p, row, wp->w_wincol, attr);
-    grid_fill(&wp->w_grid, row, row + 1, len + wp->w_wincol,
+    grid_puts(&default_grid, p, row, wp->w_wincol, attr);
+    grid_fill(&default_grid, row, row + 1, len + wp->w_wincol,
         this_ru_col + wp->w_wincol, fillchar, fillchar, attr);
 
     if (get_keymap_str(wp, (char_u *)"<%s>", NameBuff, MAXPATHL)
         && this_ru_col - len > (int)(STRLEN(NameBuff) + 1))
-      grid_puts(&wp->w_grid, NameBuff, row,
+      grid_puts(&default_grid, NameBuff, row,
                   (int)(this_ru_col - STRLEN(NameBuff) - 1 + wp->w_wincol),
                   attr);
 
@@ -4877,7 +4877,7 @@ static void win_redr_status(win_T *wp)
     } else {
       fillchar = fillchar_vsep(wp, &attr);
     }
-    grid_putchar(&wp->w_grid, fillchar, wp->w_winrow + wp->w_height,
+    grid_putchar(&default_grid, fillchar, wp->w_winrow + wp->w_height,
                    W_ENDCOL(wp), attr);
   }
   busy = FALSE;
@@ -5105,7 +5105,7 @@ win_redr_custom (
   p = buf;
   for (n = 0; hltab[n].start != NULL; n++) {
     int len = (int)(hltab[n].start - p);
-    grid_puts_len(&wp->w_grid, p, len, row, col, curattr);
+    grid_puts_len(&default_grid, p, len, row, col, curattr);
     col += vim_strnsize(p, len);
     p = hltab[n].start;
 
@@ -5119,7 +5119,7 @@ win_redr_custom (
       curattr = highlight_user[hltab[n].userhl - 1];
   }
   // Make sure to use an empty string instead of p, if p is beyond buf + len.
-  grid_puts(&wp->w_grid, p >= buf + len ? (char_u *)"" : p, row, col, curattr);
+  grid_puts(&default_grid, p >= buf + len ? (char_u *)"" : p, row, col, curattr);
 
   screen_puts_line_flush(false);
 
@@ -6941,9 +6941,9 @@ static void win_redr_ruler(win_T *wp, int always)
     } else if (this_ru_col + (int)STRLEN(buffer) > width)
       buffer[width - this_ru_col] = NUL;
 
-    grid_puts(&wp->w_grid, buffer, row, this_ru_col + off, attr);
+    grid_puts(&default_grid, buffer, row, this_ru_col + off, attr);
     i = redraw_cmdline;
-    grid_fill(&wp->w_grid, row, row + 1,
+    grid_fill(&default_grid, row, row + 1,
         this_ru_col + off + (int)STRLEN(buffer),
         off + width,
         fillchar, fillchar, attr);
