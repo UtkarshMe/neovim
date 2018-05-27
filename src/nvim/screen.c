@@ -4409,7 +4409,7 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
 
   if (clear_width > 0) {
     // For a window that's left of another, draw the separator char.
-    if (col + coloff < grid->Columns && wp->w_vsep_width > 0) {
+    if (col + coloff < Columns && wp->w_vsep_width > 0) {
       int c = fillchar_vsep(wp, &hl);
       schar_T sc;
       schar_from_char(sc, c);
@@ -4868,7 +4868,8 @@ void win_redr_status(win_T *wp)
     } else {
       fillchar = fillchar_vsep(wp, &attr);
     }
-    grid_putchar(&default_grid, fillchar, wp->w_height, W_ENDCOL(wp), attr);
+    grid_putchar(&default_grid, fillchar, wp->w_grid.OffsetRow + wp->w_height,
+                 W_ENDCOL(wp), attr);
   }
   busy = FALSE;
 }
@@ -6146,7 +6147,6 @@ static int win_do_lines(win_T *wp, int row, int line_count,
   // otherwise it will stay there forever.
   clear_cmdline = TRUE;
   int retval;
-
   if (del) {
     retval = grid_del_lines(&wp->w_grid, row, line_count,
                             wp->w_height, 0, wp->w_width);
