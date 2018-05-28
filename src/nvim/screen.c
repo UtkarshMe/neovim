@@ -283,7 +283,8 @@ void update_screen(int type)
         int valid = default_grid.Rows - msg_scrollsize();
         if (wp->w_winrow + wp->w_height > valid) {
           wp->w_redr_type = NOT_VALID;
-          wp->w_lines_valid = 0;
+          wp->w_lines_valid = valid - wp->w_winrow;
+          grid_mark_invalid(&wp->w_grid, wp->w_lines_valid);
         }
         if (wp->w_winrow + wp->w_height + wp->w_status_height > valid) {
           wp->w_redr_status = true;
@@ -7115,5 +7116,15 @@ void win_new_shellsize(void)
   if (old_Columns != default_grid.Columns) {
     old_Columns = default_grid.Columns;
     shell_new_columns();  // update window sizes
+  }
+}
+
+/// mark all the rows after "row" as invalid by making ScreenAttrs = -1
+/// for each cell.
+void grid_mark_invalid(ScreenGrid *grid, int row)
+{
+  int ncells = grid->Rows * grid->Columns;
+  for (int i = row * grid->Columns; i < ncells; ++i) {
+    grid->ScreenAttrs[i] = -1;
   }
 }
