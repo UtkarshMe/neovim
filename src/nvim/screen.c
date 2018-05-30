@@ -5017,9 +5017,9 @@ win_redr_custom (
     maxwidth = default_grid.Columns;
     use_sandbox = was_set_insecurely((char_u *)"tabline", 0);
   } else {
-    row = wp->w_height;
+    row = wp->w_grid.Rows + wp->w_grid.OffsetRow;
     fillchar = fillchar_status(&attr, wp);
-    maxwidth = wp->w_width;
+    maxwidth = wp->w_grid.Columns;
 
     if (draw_ruler) {
       stl = p_ruf;
@@ -5053,6 +5053,8 @@ win_redr_custom (
       use_sandbox = was_set_insecurely((char_u *)"statusline",
           *wp->w_p_stl == NUL ? 0 : OPT_LOCAL);
     }
+
+    col += wp->w_grid.OffsetColumn;
   }
 
   if (maxwidth <= 0)
