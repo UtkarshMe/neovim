@@ -128,6 +128,14 @@ StlClickDefinition *tab_page_click_defs = NULL;
 
 long tab_page_click_defs_size = 0;
 
+/// The last handle that was assigned to a ScreenGrid. 1 is reserved for
+/// the default_grid.
+/// TODO(utkarshme): Numbers can be recycled after grid destruction.
+static int last_handle = 1;
+
+/// Whether to call "ui_call_grid_resize" in win_grid_alloc
+static int send_grid_resize;
+
 #ifdef INCLUDE_GENERATED_DECLARATIONS
 # include "screen.c.generated.h"
 #endif
@@ -5816,6 +5824,7 @@ int screen_valid(int doclear)
 // TODO(utkarshme): Think of a better name, place
 void window_grid_alloc(win_T *wp, int doclear)
 {
+  int handle_saved = wp->w_grid.handle;
   if (wp->w_grid.ScreenLines != NULL
       && wp->w_grid.Rows == wp->w_height
       && wp->w_grid.Columns == wp->w_width) {
@@ -5823,6 +5832,13 @@ void window_grid_alloc(win_T *wp, int doclear)
   }
 
   grid_alloc(&wp->w_grid, wp->w_height, wp->w_width, doclear);
+  wp->w_grid.handle = handle_saved;
+
+  // only assign a grid handle if not already
+  if (wp->w_grid.handle == 0) {
+    wp->w_grid.handle = ++last_handle;
+  }
+  ui_call_grid_resize(wp->w_grid.handle, wp->w_grid.Columns, wp->w_grid.Rows);
 
   wp->w_grid.OffsetRow = wp->w_winrow;
   wp->w_grid.OffsetColumn = wp->w_wincol;
@@ -5919,6 +5935,7 @@ retry:
 
   default_grid.OffsetRow = 0;
   default_grid.OffsetColumn = 0;
+  default_grid.handle = 1;
 
   must_redraw = CLEAR;          /* need to clear the screen later */
   if (doclear)
@@ -6230,7 +6247,7 @@ int grid_ins_lines(ScreenGrid *grid, int row, int line_count, int end,
     }
   }
 
-  ui_call_grid_scroll(1, row, end, col, col+width, -line_count, 0);
+  ui_call_grid_scroll(grid->handle, row, end, col, col+width, -line_count, 0);
 
   return OK;
 }
@@ -6282,7 +6299,7 @@ int grid_del_lines(ScreenGrid *grid, int row, int line_count, int end,
     }
   }
 
-  ui_call_grid_scroll(1, row, end, col, col+width, line_count, 0);
+  ui_call_grid_scroll(grid->handle, row, end, col, col+width, line_count, 0);
 
   return OK;
 }
