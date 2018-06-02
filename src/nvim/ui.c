@@ -316,17 +316,16 @@ void ui_set_ext_option(UI *ui, UIExtension ext, bool active)
 
 void ui_line(ScreenGrid *grid, int row, int startcol, int endcol, int clearcol, int clearattr)
 {
-  size_t off = grid->LineOffset[row] + (size_t)startcol;
+  size_t off  = grid->LineOffset[row] + (size_t)startcol;
+  int row_off = ui_is_external(kUIMultigrid) ? 0 : grid->OffsetRow;
+  int col_off = ui_is_external(kUIMultigrid) ? 0 : grid->OffsetColumn;
 
-  UI_CALL(raw_line, 1,
-          grid->OffsetRow    + row,
-          grid->OffsetColumn + startcol,
-          grid->OffsetColumn + endcol,
-          grid->OffsetColumn + clearcol,
-          clearattr,
-          grid->ScreenLines  + off,
-          grid->ScreenAttrs  + off);
-
+  UI_CALL(raw_line, grid->handle,
+          row_off + row,
+          col_off + startcol,
+          col_off + endcol,
+          col_off + clearcol,
+          clearattr, grid->ScreenLines + off, grid->ScreenAttrs + off);
   if (p_wd) {  // 'writedelay': flush & delay each time.
     int old_row = row, old_col = col;
     // If'writedelay is active, we set the cursor to highlight what was drawn
