@@ -5821,6 +5821,7 @@ int screen_valid(int doclear)
 // TODO(utkarshme): Think of a better name, place
 void window_grid_alloc(win_T *wp, int doclear)
 {
+  int handle_saved = wp->w_grid.handle;
   if (wp->w_grid.ScreenLines != NULL
       && wp->w_grid.Rows == wp->w_height
       && wp->w_grid.Columns == wp->w_width) {
@@ -5828,12 +5829,13 @@ void window_grid_alloc(win_T *wp, int doclear)
   }
 
   grid_alloc(&wp->w_grid, wp->w_height, wp->w_width, doclear);
+  wp->w_grid.handle = handle_saved;
 
   // only assign a grid handle if not already
   if (wp->w_grid.handle == 0) {
     wp->w_grid.handle = ++last_handle;
-    ui_call_grid_resize(wp->w_grid.handle, wp->w_grid.Columns, wp->w_grid.Rows);
   }
+  ui_call_grid_resize(wp->w_grid.handle, wp->w_grid.Columns, wp->w_grid.Rows);
 
   wp->w_grid.OffsetRow = wp->w_winrow;
   wp->w_grid.OffsetColumn = wp->w_wincol;
