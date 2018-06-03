@@ -133,6 +133,7 @@ long tab_page_click_defs_size = 0;
 /// TODO(utkarshme): Numbers can be recycled after grid destruction.
 static int last_handle = 1;
 
+/// Whether to call "ui_call_grid_resize" in win_grid_alloc
 static int send_grid_resize;
 
 #ifdef INCLUDE_GENERATED_DECLARATIONS
@@ -290,8 +291,8 @@ void update_screen(int type)
         int valid = default_grid.Rows - msg_scrollsize();
         if (wp->w_winrow + wp->w_height > valid) {
           wp->w_redr_type = NOT_VALID;
-          wp->w_lines_valid = valid - wp->w_winrow;
-          grid_mark_invalid(&wp->w_grid, wp->w_lines_valid);
+          wp->w_lines_valid = 0;
+          grid_mark_invalid(&wp->w_grid, valid - wp->w_winrow);
         }
         if (wp->w_winrow + wp->w_height + wp->w_status_height > valid) {
           wp->w_redr_status = true;
@@ -7143,10 +7144,8 @@ void win_new_shellsize(void)
 
 /// mark all the rows after "row" as invalid by making ScreenAttrs = -1
 /// for each cell.
-void grid_mark_invalid(ScreenGrid *grid, int row)
+static inline void grid_mark_invalid(ScreenGrid *grid, int row)
 {
-  int ncells = grid->Rows * grid->Columns;
-  for (int i = row * grid->Columns; i < ncells; ++i) {
-    grid->ScreenAttrs[i] = -1;
-  }
+  memset(grid->ScreenAttrs + grid->LineOffset[row], -1,
+         grid->Rows * grid->Columns);
 }
