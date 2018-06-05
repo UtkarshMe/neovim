@@ -5824,9 +5824,15 @@ int screen_valid(int doclear)
 void win_grid_alloc(win_T *wp, int doclear)
 {
   if (wp->w_grid.ScreenLines == NULL
-      || wp->w_grid.Rows != wp->w_height
-      || wp->w_grid.Columns != wp->w_width) {
-    grid_alloc(&wp->w_grid, wp->w_height, wp->w_width, doclear);
+      || wp->w_grid.internal_Rows != wp->w_height
+      || wp->w_grid.internal_Columns != wp->w_width) {
+    if (ui_is_external(kUIMultigrid)) {
+      grid_alloc(&wp->w_grid, (int) 1.5 * wp->w_height, (int) 1.5 * wp->w_width, doclear);
+    } else {
+      grid_alloc(&wp->w_grid, wp->w_height, wp->w_width, doclear);
+    }
+    wp->w_grid.internal_Rows = wp->w_width;
+    wp->w_grid.internal_Columns = wp->w_height;
 
     // only assign a grid handle if not already
     if (wp->w_grid.handle == 0) {
