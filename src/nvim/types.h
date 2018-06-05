@@ -40,6 +40,9 @@ typedef struct {
   int OffsetRow;
   int OffsetColumn;
 
+  int internal_Rows;
+  int internal_Columns;
+
   int was_resized;
 } ScreenGrid;
 
