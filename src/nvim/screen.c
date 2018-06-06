@@ -429,6 +429,7 @@ void update_screen(int type)
       win_redr_status(wp);
     }
   }
+  send_grid_resize = false;
   end_search_hl();
   // May need to redraw the popup menu.
   if (pum_drawn()) {
@@ -5841,12 +5842,12 @@ void win_grid_alloc(win_T *wp, int doclear)
     wp->w_grid.OffsetRow = wp->w_winrow;
     wp->w_grid.OffsetColumn = wp->w_wincol;
 
-    send_grid_resize = true;
+    wp->w_grid.was_resized = true;
   }
 
-  if (send_grid_resize) {
+  if (send_grid_resize || wp->w_grid.was_resized) {
     ui_call_grid_resize(wp->w_grid.handle, wp->w_grid.Columns, wp->w_grid.Rows);
-    send_grid_resize = false;
+    wp->w_grid.was_resized = false;
   }
 }
 

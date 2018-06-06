@@ -42,6 +42,8 @@ typedef struct {
 
   int internal_Rows;
   int internal_Columns;
+
+  int was_resized;
 } ScreenGrid;
 
 #endif  // NVIM_TYPES_H
