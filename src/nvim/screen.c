@@ -4535,8 +4535,7 @@ static void draw_vsep_win(win_T *wp, int row)
   if (wp->w_vsep_width) {
     // draw the vertical separator right of this window
     c = fillchar_vsep(wp, &hl);
-    grid_fill(&default_grid, wp->w_winrow + row,
-              wp->w_winrow + wp->w_height,
+    grid_fill(&default_grid, wp->w_winrow + row, wp->w_winrow + wp->w_height,
               W_ENDCOL(wp), W_ENDCOL(wp) + 1, c, ' ', hl);
   }
 }
@@ -4853,10 +4852,10 @@ static void win_redr_status(win_T *wp)
       }
     }
 
-    row = wp->w_grid.OffsetRow + wp->w_height;
-    grid_puts(&default_grid, p, row, wp->w_grid.OffsetColumn, attr);
-    grid_fill(&default_grid, row, row + 1, len + wp->w_grid.OffsetColumn,
-              this_ru_col + wp->w_grid.OffsetColumn, fillchar, fillchar, attr);
+    row = wp->w_winrow + wp->w_height;
+    grid_puts(&default_grid, p, row, wp->w_wincol, attr);
+    grid_fill(&default_grid, row, row + 1, len + wp->w_wincol,
+              this_ru_col + wp->w_wincol, fillchar, fillchar, attr);
 
     if (get_keymap_str(wp, (char_u *)"<%s>", NameBuff, MAXPATHL)
         && this_ru_col - len > (int)(STRLEN(NameBuff) + 1))
@@ -4876,7 +4875,7 @@ static void win_redr_status(win_T *wp)
     } else {
       fillchar = fillchar_vsep(wp, &attr);
     }
-    grid_putchar(&default_grid, fillchar, wp->w_grid.OffsetRow + wp->w_height,
+    grid_putchar(&default_grid, fillchar, wp->w_winrow + wp->w_height,
                  W_ENDCOL(wp), attr);
   }
   busy = FALSE;
@@ -6881,9 +6880,9 @@ static void win_redr_ruler(win_T *wp, int always)
     int off;
 
     if (wp->w_status_height) {
-      row = wp->w_grid.OffsetRow + wp->w_height;
+      row = wp->w_winrow + wp->w_height;
       fillchar = fillchar_status(&attr, wp);
-      off = wp->w_grid.OffsetColumn;
+      off = wp->w_wincol;
       width = wp->w_width;
     } else {
       row = default_grid.Rows - 1;
