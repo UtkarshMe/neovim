@@ -448,3 +448,13 @@ Array ui_array(void)
   }
   return all_uis;
 }
+
+void ui_grid_resize(GridHandle grid_handle, int width, int height)
+{
+  ScreenGrid *grid = get_grid_by_handle(grid_handle);
+  if (grid == NULL) {
+    //TODO(utkarshme): error out
+    return;
+  }
+  grid_alloc(grid, height, width, true);
+}
