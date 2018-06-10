@@ -12,7 +12,8 @@ typedef enum {
   kUIPopupmenu,
   kUITabline,
   kUIWildmenu,
-#define kUIGlobalCount (kUIWildmenu+1)
+  kUIMultigrid,
+#define kUIGlobalCount (kUIMultigrid+1)
   kUINewgrid,
   kUIHlState,
   kUIExtCount,
