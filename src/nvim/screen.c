@@ -7149,3 +7149,13 @@ static inline void grid_mark_invalid(ScreenGrid *grid, int row)
   memset(grid->ScreenAttrs + grid->LineOffset[row], -1,
          grid->Rows * grid->Columns);
 }
+
+ScreenGrid * get_grid_by_handle(GridHandle handle)
+{
+  FOR_ALL_WINDOWS_IN_TAB(wp, curtab) {
+    if (wp->w_grid.handle == handle) {
+      return &wp->w_grid;
+    }
+  }
+  return NULL;
+}
