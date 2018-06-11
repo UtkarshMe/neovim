@@ -5822,33 +5822,34 @@ int screen_valid(int doclear)
 // TODO(utkarshme): Think of a better name, place
 void win_grid_alloc(win_T *wp, int doclear)
 {
-  if (wp->w_grid.ScreenLines == NULL
-      // TODO(utkarshme): these lines create a redraw very frequently. find the problem
-      /*|| wp->w_grid.internal_Rows != wp->w_height*/
-      /*|| wp->w_grid.internal_Columns != wp->w_width*/
-      ) {
-    if (ui_is_external(kUIMultigrid)) {
-      grid_alloc(&wp->w_grid, (int) 1.5 * wp->w_height, (int) 1.5 * wp->w_width, doclear);
-    } else {
-      grid_alloc(&wp->w_grid, wp->w_height, wp->w_width, doclear);
-    }
-    wp->w_grid.internal_Rows = wp->w_width;
-    wp->w_grid.internal_Columns = wp->w_height;
+  ScreenGrid *grid = &wp->w_grid;
 
-    // only assign a grid handle if not already
-    if (wp->w_grid.handle == 0) {
-      wp->w_grid.handle = ++last_handle;
-    }
-
-    wp->w_grid.OffsetRow = wp->w_winrow;
-    wp->w_grid.OffsetColumn = wp->w_wincol;
-
-    wp->w_grid.was_resized = true;
+  if (grid->InternalRows == 0) {
+    grid->InternalRows = wp->w_height;
+  }
+  if (grid->InternalColumns == 0) {
+    grid->InternalColumns = wp->w_width;
   }
 
-  if (send_grid_resize || wp->w_grid.was_resized) {
-    ui_call_grid_resize(wp->w_grid.handle, wp->w_grid.Columns, wp->w_grid.Rows);
-    wp->w_grid.was_resized = false;
+  if (grid->ScreenLines == NULL
+      || grid->Rows != grid->InternalRows
+      || grid->Columns != grid->InternalColumns) {
+    grid_alloc(grid, grid->InternalRows, grid->InternalColumns, doclear);
+
+    // only assign a grid handle if not already
+    if (grid->handle == 0) {
+      grid->handle = ++last_handle;
+    }
+
+    grid->OffsetRow = wp->w_winrow;
+    grid->OffsetColumn = wp->w_wincol;
+
+    grid->was_resized = true;
+  }
+
+  if (send_grid_resize || grid->was_resized) {
+    ui_call_grid_resize(grid->handle, grid->Columns, grid->Rows);
+    grid->was_resized = false;
   }
 }
 
@@ -7155,11 +7156,11 @@ static inline void grid_mark_invalid(ScreenGrid *grid, int row)
          grid->Rows * grid->Columns);
 }
 
-ScreenGrid * get_grid_by_handle(GridHandle handle)
+win_T * get_win_by_grid_handle(GridHandle handle)
 {
   FOR_ALL_WINDOWS_IN_TAB(wp, curtab) {
     if (wp->w_grid.handle == handle) {
-      return &wp->w_grid;
+      return wp;
     }
   }
   return NULL;

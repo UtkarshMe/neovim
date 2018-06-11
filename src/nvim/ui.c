@@ -451,12 +451,15 @@ Array ui_array(void)
 
 void ui_grid_resize(GridHandle grid_handle, int width, int height)
 {
-  ScreenGrid *grid = get_grid_by_handle(grid_handle);
-  if (grid == NULL) {
+  win_T *wp = get_win_by_grid_handle(grid_handle);
+
+  if (wp == NULL) {
     //TODO(utkarshme): error out
     abort();
     return;
   }
-  grid_alloc(grid, height, width, true);
-  ui_call_grid_resize(grid_handle, grid->Columns, grid->Rows);
+
+  wp->w_grid.InternalRows = (int)height;
+  wp->w_grid.InternalColumns = (int)width;
+  redraw_win_later(wp, SOME_VALID);
 }
