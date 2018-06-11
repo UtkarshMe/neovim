@@ -463,7 +463,7 @@ void ui_grid_resize(GridHandle grid_handle, int width, int height)
     return;
   }
 
-  wp->w_grid.InternalRows = (int)height;
-  wp->w_grid.InternalColumns = (int)width;
+  wp->w_grid.internal_rows = (int)height;
+  wp->w_grid.internal_columns = (int)width;
   redraw_win_later(wp, SOME_VALID);
 }

@@ -5824,17 +5824,17 @@ void win_grid_alloc(win_T *wp, int doclear)
 {
   ScreenGrid *grid = &wp->w_grid;
 
-  if (grid->InternalRows == 0) {
-    grid->InternalRows = wp->w_height;
+  if (grid->internal_rows == 0) {
+    grid->internal_rows = wp->w_height;
   }
-  if (grid->InternalColumns == 0) {
-    grid->InternalColumns = wp->w_width;
+  if (grid->internal_columns == 0) {
+    grid->internal_columns = wp->w_width;
   }
 
   if (grid->ScreenLines == NULL
-      || grid->Rows != grid->InternalRows
-      || grid->Columns != grid->InternalColumns) {
-    grid_alloc(grid, grid->InternalRows, grid->InternalColumns, doclear);
+      || grid->Rows != grid->internal_rows
+      || grid->Columns != grid->internal_columns) {
+    grid_alloc(grid, grid->internal_rows, grid->internal_columns, doclear);
 
     // only assign a grid handle if not already
     if (grid->handle == 0) {
