@@ -1333,6 +1333,9 @@ static void win_rotate(int upwards, int count)
     (void)win_comp_pos();
   }
 
+  ui_win_position(wp1);
+  ui_win_position(wp2);
+
   redraw_later(CLEAR);
 }
 
