@@ -5842,7 +5842,12 @@ void win_grid_alloc(win_T *wp, int doclear)
     grid->was_resized = true;
   }
 
-  if (send_grid_resize || grid->was_resized) {
+  // send grid resize event if:
+  // - a grid was just resized
+  // - screen_resize was called and all grid sizes must be sent
+  // - the UI wants multigrid event (necessary)
+  if ((send_grid_resize || grid->was_resized)
+      && ui_is_external(kUIMultigrid)) {
     ui_call_grid_resize(grid->handle, grid->Columns, grid->Rows);
     grid->was_resized = false;
   }
