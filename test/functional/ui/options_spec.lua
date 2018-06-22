@@ -30,6 +30,7 @@ describe('ui receives option updates', function()
     ext_popupmenu=false,
     ext_tabline=false,
     ext_wildmenu=false,
+    ext_windows=false,
     ext_newgrid=false,
     ext_hlstate=false,
     ext_multigrid=false,

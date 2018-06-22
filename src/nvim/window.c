@@ -566,6 +566,7 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
   int minheight;
   int wmh1;
   bool did_set_fraction = false;
+  int ext_windows = ui_is_external(kUIWindows);
 
   if (flags & WSP_TOP)
     oldwin = firstwin;
@@ -583,8 +584,9 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
     need_status = STATUS_HEIGHT;
   }
 
-
-  if (flags & WSP_VERT) {
+  if (ext_windows) {
+    // TODO(utkarshme): WHAT EVEN.
+  } else if (flags & WSP_VERT) {
     int wmw1;
     int minwidth;
 
@@ -787,7 +789,9 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
     if (wp == NULL)
       return FAIL;
 
-    new_frame(wp);
+    if (!ext_windows) {
+      new_frame(wp);
+    }
 
     /* make the contents of the new window the same as the current one */
     win_init(wp, curwin, flags);
@@ -796,150 +800,152 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
   /*
    * Reorganise the tree of frames to insert the new window.
    */
-  if (flags & (WSP_TOP | WSP_BOT)) {
-    if ((topframe->fr_layout == FR_COL && (flags & WSP_VERT) == 0)
-        || (topframe->fr_layout == FR_ROW && (flags & WSP_VERT) != 0)) {
-      curfrp = topframe->fr_child;
-      if (flags & WSP_BOT)
-        while (curfrp->fr_next != NULL)
-          curfrp = curfrp->fr_next;
-    } else
-      curfrp = topframe;
-    before = (flags & WSP_TOP);
-  } else {
-    curfrp = oldwin->w_frame;
-    if (flags & WSP_BELOW)
-      before = FALSE;
-    else if (flags & WSP_ABOVE)
-      before = TRUE;
-    else if (flags & WSP_VERT)
-      before = !p_spr;
-    else
-      before = !p_sb;
-  }
-  if (curfrp->fr_parent == NULL || curfrp->fr_parent->fr_layout != layout) {
-    /* Need to create a new frame in the tree to make a branch. */
-    frp = xcalloc(1, sizeof(frame_T));
-    *frp = *curfrp;
-    curfrp->fr_layout = layout;
-    frp->fr_parent = curfrp;
-    frp->fr_next = NULL;
-    frp->fr_prev = NULL;
-    curfrp->fr_child = frp;
-    curfrp->fr_win = NULL;
-    curfrp = frp;
-    if (frp->fr_win != NULL)
-      oldwin->w_frame = frp;
-    else
-      for (frp = frp->fr_child; frp != NULL; frp = frp->fr_next)
-        frp->fr_parent = curfrp;
-  }
-
-  if (new_wp == NULL)
-    frp = wp->w_frame;
-  else
-    frp = new_wp->w_frame;
-  frp->fr_parent = curfrp->fr_parent;
-
-  /* Insert the new frame at the right place in the frame list. */
-  if (before)
-    frame_insert(curfrp, frp);
-  else
-    frame_append(curfrp, frp);
-
-  /* Set w_fraction now so that the cursor keeps the same relative
-   * vertical position. */
-  if (!did_set_fraction) {
-    set_fraction(oldwin);
-  }
-  wp->w_fraction = oldwin->w_fraction;
-
-  if (flags & WSP_VERT) {
-    wp->w_p_scr = curwin->w_p_scr;
-
-    if (need_status) {
-      win_new_height(oldwin, oldwin->w_height - 1);
-      oldwin->w_status_height = need_status;
-    }
+  if (!ext_windows) {
     if (flags & (WSP_TOP | WSP_BOT)) {
-      /* set height and row of new window to full height */
-      wp->w_winrow = tabline_height();
-      win_new_height(wp, curfrp->fr_height - (p_ls > 0));
-      wp->w_status_height = (p_ls > 0);
+      if ((topframe->fr_layout == FR_COL && (flags & WSP_VERT) == 0)
+          || (topframe->fr_layout == FR_ROW && (flags & WSP_VERT) != 0)) {
+        curfrp = topframe->fr_child;
+        if (flags & WSP_BOT)
+          while (curfrp->fr_next != NULL)
+            curfrp = curfrp->fr_next;
+      } else
+        curfrp = topframe;
+      before = (flags & WSP_TOP);
     } else {
-      /* height and row of new window is same as current window */
-      wp->w_winrow = oldwin->w_winrow;
-      win_new_height(wp, oldwin->w_height);
-      wp->w_status_height = oldwin->w_status_height;
+      curfrp = oldwin->w_frame;
+      if (flags & WSP_BELOW)
+        before = FALSE;
+      else if (flags & WSP_ABOVE)
+        before = TRUE;
+      else if (flags & WSP_VERT)
+        before = !p_spr;
+      else
+        before = !p_sb;
     }
-    frp->fr_height = curfrp->fr_height;
+    if (curfrp->fr_parent == NULL || curfrp->fr_parent->fr_layout != layout) {
+      /* Need to create a new frame in the tree to make a branch. */
+      frp = xcalloc(1, sizeof(frame_T));
+      *frp = *curfrp;
+      curfrp->fr_layout = layout;
+      frp->fr_parent = curfrp;
+      frp->fr_next = NULL;
+      frp->fr_prev = NULL;
+      curfrp->fr_child = frp;
+      curfrp->fr_win = NULL;
+      curfrp = frp;
+      if (frp->fr_win != NULL)
+        oldwin->w_frame = frp;
+      else
+        for (frp = frp->fr_child; frp != NULL; frp = frp->fr_next)
+          frp->fr_parent = curfrp;
+    }
 
-    /* "new_size" of the current window goes to the new window, use
-     * one column for the vertical separator */
-    win_new_width(wp, new_size);
+    if (new_wp == NULL)
+      frp = wp->w_frame;
+    else
+      frp = new_wp->w_frame;
+    frp->fr_parent = curfrp->fr_parent;
+
+    /* Insert the new frame at the right place in the frame list. */
     if (before)
-      wp->w_vsep_width = 1;
-    else {
-      wp->w_vsep_width = oldwin->w_vsep_width;
-      oldwin->w_vsep_width = 1;
+      frame_insert(curfrp, frp);
+    else
+      frame_append(curfrp, frp);
+
+    /* Set w_fraction now so that the cursor keeps the same relative
+     * vertical position. */
+    if (!did_set_fraction) {
+      set_fraction(oldwin);
     }
-    if (flags & (WSP_TOP | WSP_BOT)) {
+    wp->w_fraction = oldwin->w_fraction;
+
+    if (flags & WSP_VERT) {
+      wp->w_p_scr = curwin->w_p_scr;
+
+      if (need_status) {
+        win_new_height(oldwin, oldwin->w_height - 1);
+        oldwin->w_status_height = need_status;
+      }
+      if (flags & (WSP_TOP | WSP_BOT)) {
+        /* set height and row of new window to full height */
+        wp->w_winrow = tabline_height();
+        win_new_height(wp, curfrp->fr_height - (p_ls > 0));
+        wp->w_status_height = (p_ls > 0);
+      } else {
+        /* height and row of new window is same as current window */
+        wp->w_winrow = oldwin->w_winrow;
+        win_new_height(wp, oldwin->w_height);
+        wp->w_status_height = oldwin->w_status_height;
+      }
+      frp->fr_height = curfrp->fr_height;
+
+      /* "new_size" of the current window goes to the new window, use
+      * one column for the vertical separator */
+      win_new_width(wp, new_size);
+      if (before)
+        wp->w_vsep_width = 1;
+      else {
+        wp->w_vsep_width = oldwin->w_vsep_width;
+        oldwin->w_vsep_width = 1;
+      }
+      if (flags & (WSP_TOP | WSP_BOT)) {
+        if (flags & WSP_BOT)
+          frame_add_vsep(curfrp);
+        /* Set width of neighbor frame */
+        frame_new_width(curfrp, curfrp->fr_width
+            - (new_size + ((flags & WSP_TOP) != 0)), flags & WSP_TOP,
+            FALSE);
+      } else
+        win_new_width(oldwin, oldwin->w_width - (new_size + 1));
+      if (before) {       /* new window left of current one */
+        wp->w_wincol = oldwin->w_wincol;
+        oldwin->w_wincol += new_size + 1;
+      } else              /* new window right of current one */
+        wp->w_wincol = oldwin->w_wincol + oldwin->w_width + 1;
+      frame_fix_width(oldwin);
+      frame_fix_width(wp);
+    } else {
+      /* width and column of new window is same as current window */
+      if (flags & (WSP_TOP | WSP_BOT)) {
+        wp->w_wincol = 0;
+        win_new_width(wp, Columns);
+        wp->w_vsep_width = 0;
+      } else {
+        wp->w_wincol = oldwin->w_wincol;
+        win_new_width(wp, oldwin->w_width);
+        wp->w_vsep_width = oldwin->w_vsep_width;
+      }
+      frp->fr_width = curfrp->fr_width;
+
+      /* "new_size" of the current window goes to the new window, use
+      * one row for the status line */
+      win_new_height(wp, new_size);
+      if (flags & (WSP_TOP | WSP_BOT)) {
+        int new_fr_height = curfrp->fr_height - new_size;
+
+        if (!((flags & WSP_BOT) && p_ls == 0)) {
+          new_fr_height -= STATUS_HEIGHT;
+        }
+        frame_new_height(curfrp, new_fr_height, flags & WSP_TOP, false);
+      } else {
+        win_new_height(oldwin, oldwin_height - (new_size + STATUS_HEIGHT));
+      }
+      if (before) {       // new window above current one
+        wp->w_winrow = oldwin->w_winrow;
+        wp->w_status_height = STATUS_HEIGHT;
+        oldwin->w_winrow += wp->w_height + STATUS_HEIGHT;
+      } else {          /* new window below current one */
+        wp->w_winrow = oldwin->w_winrow + oldwin->w_height + STATUS_HEIGHT;
+        wp->w_status_height = oldwin->w_status_height;
+        if (!(flags & WSP_BOT)) {
+          oldwin->w_status_height = STATUS_HEIGHT;
+        }
+      }
       if (flags & WSP_BOT)
-        frame_add_vsep(curfrp);
-      /* Set width of neighbor frame */
-      frame_new_width(curfrp, curfrp->fr_width
-          - (new_size + ((flags & WSP_TOP) != 0)), flags & WSP_TOP,
-          FALSE);
-    } else
-      win_new_width(oldwin, oldwin->w_width - (new_size + 1));
-    if (before) {       /* new window left of current one */
-      wp->w_wincol = oldwin->w_wincol;
-      oldwin->w_wincol += new_size + 1;
-    } else              /* new window right of current one */
-      wp->w_wincol = oldwin->w_wincol + oldwin->w_width + 1;
-    frame_fix_width(oldwin);
-    frame_fix_width(wp);
-  } else {
-    /* width and column of new window is same as current window */
-    if (flags & (WSP_TOP | WSP_BOT)) {
-      wp->w_wincol = 0;
-      win_new_width(wp, Columns);
-      wp->w_vsep_width = 0;
-    } else {
-      wp->w_wincol = oldwin->w_wincol;
-      win_new_width(wp, oldwin->w_width);
-      wp->w_vsep_width = oldwin->w_vsep_width;
+        frame_add_statusline(curfrp);
+      frame_fix_height(wp);
+      frame_fix_height(oldwin);
     }
-    frp->fr_width = curfrp->fr_width;
-
-    /* "new_size" of the current window goes to the new window, use
-     * one row for the status line */
-    win_new_height(wp, new_size);
-    if (flags & (WSP_TOP | WSP_BOT)) {
-      int new_fr_height = curfrp->fr_height - new_size;
-
-      if (!((flags & WSP_BOT) && p_ls == 0)) {
-        new_fr_height -= STATUS_HEIGHT;
-      }
-      frame_new_height(curfrp, new_fr_height, flags & WSP_TOP, false);
-    } else {
-      win_new_height(oldwin, oldwin_height - (new_size + STATUS_HEIGHT));
-    }
-    if (before) {       // new window above current one
-      wp->w_winrow = oldwin->w_winrow;
-      wp->w_status_height = STATUS_HEIGHT;
-      oldwin->w_winrow += wp->w_height + STATUS_HEIGHT;
-    } else {          /* new window below current one */
-      wp->w_winrow = oldwin->w_winrow + oldwin->w_height + STATUS_HEIGHT;
-      wp->w_status_height = oldwin->w_status_height;
-      if (!(flags & WSP_BOT)) {
-        oldwin->w_status_height = STATUS_HEIGHT;
-      }
-    }
-    if (flags & WSP_BOT)
-      frame_add_statusline(curfrp);
-    frame_fix_height(wp);
-    frame_fix_height(oldwin);
   }
 
   if (flags & (WSP_TOP | WSP_BOT))
@@ -986,6 +992,13 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
 
   // Keep same changelist position in new window.
   wp->w_changelistidx = oldwin->w_changelistidx;
+
+  grid_assign_handle(&wp->w_grid);
+  if (ext_windows) {
+    // TODO(utkarshme): Correct the flags according to the direction in docs
+    ui_call_win_split(curwin->handle, curwin->w_grid.handle, wp->handle,
+                      wp->w_grid.handle, flags);
+  }
 
   /*
    * make the new window the current window
@@ -1198,6 +1211,10 @@ static void win_exchange(long Prenum)
     return;
   }
 
+  if (ui_is_external(kUIWindows)) {
+    ui_call_win_exchange(curwin->handle, curwin->w_grid.handle, Prenum);
+    return;
+  }
 
   /*
    * find window to exchange with
@@ -1287,6 +1304,11 @@ static void win_rotate(int upwards, int count)
     return;
   }
 
+  if (ui_is_external(kUIWindows)) {
+    ui_call_win_rotate(curwin->handle, curwin->w_grid.handle, upwards, count);
+    return;
+  }
+
   /* Check if all frames in this row/col have one window. */
   for (frp = curwin->w_frame->fr_parent->fr_child; frp != NULL;
        frp = frp->fr_next)
@@ -1359,6 +1381,12 @@ static void win_totop(int size, int flags)
 
   if (ONE_WINDOW) {
     beep_flush();
+    return;
+  }
+
+  if (ui_is_external(kUIWindows)) {
+    // TODO(utkarshme): Correct the flags according to the direction in docs
+    ui_call_win_move(curwin->handle, curwin->w_grid.handle, flags);
     return;
   }
 
@@ -1445,6 +1473,11 @@ void win_equal(
                                    // 'b' for both, 0 for using p_ead
 )
 {
+  if (ui_is_external(kUIWindows)) {
+    ui_call_win_resize_equal();
+    return;
+  }
+
   if (dir == 0)
     dir = *p_ead;
   win_equal_rec(next_curwin == NULL ? curwin : next_curwin, current,
@@ -1915,7 +1948,9 @@ int win_close(win_T *win, bool free_buf)
     clear_snapshot(curtab, SNAP_HELP_IDX);
   }
 
-  if (win == curwin) {
+  if (ui_is_external(kUIWindows)) {
+    ui_call_win_close(win->handle, win->w_grid.handle);
+  } else if (win == curwin) {
     /*
      * Guess which window is going to be the new current window.
      * This may change because of the autocommands (sigh).
@@ -2060,7 +2095,10 @@ int win_close(win_T *win, bool free_buf)
    * If last window has a status line now and we don't want one,
    * remove the status line.
    */
-  last_status(FALSE);
+  // TODO(utkarshme): This eventually uses frames. Figure it out.
+  if (!ui_is_external(kUIWindows)) {
+    last_status(FALSE);
+  }
 
   /* After closing the help window, try restoring the window layout from
    * before it was opened. */
@@ -2166,6 +2204,7 @@ win_free_mem (
   frame_T     *frp;
   win_T       *wp;
 
+  // TODO(utkarshme): kUIWindows
   /* Remove the window and its frame from the tree of frames. */
   frp = win->w_frame;
   wp = winframe_remove(win, dirp, tp);
@@ -2998,10 +3037,12 @@ static int win_alloc_firstwin(win_T *oldwin)
     RESET_BINDING(curwin);
   }
 
-  new_frame(curwin);
-  topframe = curwin->w_frame;
-  topframe->fr_width = Columns;
-  topframe->fr_height = Rows - p_ch;
+  if (!ui_is_external(kUIWindows)) {
+    new_frame(curwin);
+    topframe = curwin->w_frame;
+    topframe->fr_width = Columns;
+    topframe->fr_height = Rows - p_ch;
+  }
 
   return OK;
 }
@@ -3024,9 +3065,11 @@ static void new_frame(win_T *wp)
 void win_init_size(void)
 {
   firstwin->w_height = ROWS_AVAIL;
-  topframe->fr_height = ROWS_AVAIL;
   firstwin->w_width = Columns;
-  topframe->fr_width = Columns;
+  if (!ui_is_external(kUIWindows)) {
+    topframe->fr_height = ROWS_AVAIL;
+    topframe->fr_width = Columns;
+  }
 }
 
 /*
@@ -3553,6 +3596,11 @@ win_goto_ver (
   frame_T     *nfr;
   frame_T     *foundfr;
 
+  if (ui_is_external(kUIWindows)) {
+    ui_call_win_move_cursor(up, count);
+    return;
+  }
+
   foundfr = curwin->w_frame;
   while (count--) {
     /*
@@ -3611,6 +3659,12 @@ win_goto_hor (
   frame_T     *fr;
   frame_T     *nfr;
   frame_T     *foundfr;
+
+  if (ui_is_external(kUIWindows)) {
+    // TODO(utkarshme): 0, 1 for vertical directions. 2, 3 for horizontal.
+    ui_call_win_move_cursor(2 + left, count);
+    return;
+  }
 
   foundfr = curwin->w_frame;
   while (count--) {
@@ -4203,7 +4257,9 @@ int win_comp_pos(void)
   int row = tabline_height();
   int col = 0;
 
-  frame_comp_pos(topframe, &row, &col);
+  if (!ui_is_external(kUIWindows)) {
+    frame_comp_pos(topframe, &row, &col);
+  }
   return row;
 }
 
@@ -4274,8 +4330,12 @@ void win_setheight_win(int height, win_T *win)
       height = 1;
   }
 
-  frame_setheight(win->w_frame, height + win->w_status_height);
-  win_grid_alloc(win, false);
+  if (!ui_is_external(kUIWindows)) {
+    frame_setheight(win->w_frame, height + win->w_status_height);
+    win_grid_alloc(win, false);
+  } else {
+    ui_call_win_height_set(win->handle, win->w_grid.handle, height);
+  }
 
   /* recompute the window positions */
   row = win_comp_pos();
@@ -4472,8 +4532,12 @@ void win_setwidth_win(int width, win_T *wp)
       width = 1;
   }
 
-  frame_setwidth(wp->w_frame, width + wp->w_vsep_width);
-  win_grid_alloc(wp, false);
+  if (!ui_is_external(kUIWindows)) {
+    frame_setwidth(wp->w_frame, width + wp->w_vsep_width);
+    win_grid_alloc(wp, false);
+  } else {
+    ui_call_win_width_set(wp->handle, wp->w_grid.handle, width);
+  }
 
   /* recompute the window positions */
   (void)win_comp_pos();
@@ -4647,94 +4711,98 @@ void win_drag_status_line(win_T *dragwin, int offset)
 
   fr = dragwin->w_frame;
   curfr = fr;
-  if (fr != topframe) {         /* more than one window */
-    fr = fr->fr_parent;
-    /* When the parent frame is not a column of frames, its parent should
-     * be. */
-    if (fr->fr_layout != FR_COL) {
-      curfr = fr;
-      if (fr != topframe)       /* only a row of windows, may drag statusline */
-        fr = fr->fr_parent;
-    }
-  }
-
-  /* If this is the last frame in a column, may want to resize the parent
-   * frame instead (go two up to skip a row of frames). */
-  while (curfr != topframe && curfr->fr_next == NULL) {
-    if (fr != topframe)
+  if (ui_is_external(kUIWindows)) {
+    /*win_call_height_inc(dragwin, offset);*/
+  } else {
+    if (fr != topframe) {         /* more than one window */
       fr = fr->fr_parent;
-    curfr = fr;
-    if (fr != topframe)
-      fr = fr->fr_parent;
-  }
-
-  if (offset < 0) { /* drag up */
-    up = TRUE;
-    offset = -offset;
-    /* sum up the room of the current frame and above it */
-    if (fr == curfr) {
-      /* only one window */
-      room = fr->fr_height - frame_minheight(fr, NULL);
-    } else {
-      room = 0;
-      for (fr = fr->fr_child;; fr = fr->fr_next) {
-        room += fr->fr_height - frame_minheight(fr, NULL);
-        if (fr == curfr)
-          break;
+      /* When the parent frame is not a column of frames, its parent should
+      * be. */
+      if (fr->fr_layout != FR_COL) {
+        curfr = fr;
+        if (fr != topframe)       /* only a row of windows, may drag statusline */
+          fr = fr->fr_parent;
       }
     }
-    fr = curfr->fr_next;                /* put fr at frame that grows */
-  } else { /* drag down */
-    up = FALSE;
-    /*
-     * Only dragging the last status line can reduce p_ch.
-     */
-    room = Rows - cmdline_row;
-    if (curfr->fr_next == NULL)
-      room -= 1;
-    else
-      room -= p_ch;
-    if (room < 0)
-      room = 0;
-    /* sum up the room of frames below of the current one */
-    for (fr = curfr->fr_next; fr != NULL; fr = fr->fr_next)
-      room += fr->fr_height - frame_minheight(fr, NULL);
-    fr = curfr;                         /* put fr at window that grows */
-  }
 
-  if (room < offset)            /* Not enough room */
-    offset = room;              /* Move as far as we can */
-  if (offset <= 0)
-    return;
-
-  /*
-   * Grow frame fr by "offset" lines.
-   * Doesn't happen when dragging the last status line up.
-   */
-  if (fr != NULL)
-    frame_new_height(fr, fr->fr_height + offset, up, FALSE);
-
-  if (up)
-    fr = curfr;                 /* current frame gets smaller */
-  else
-    fr = curfr->fr_next;        /* next frame gets smaller */
-
-  /*
-   * Now make the other frames smaller.
-   */
-  while (fr != NULL && offset > 0) {
-    n = frame_minheight(fr, NULL);
-    if (fr->fr_height - offset <= n) {
-      offset -= fr->fr_height - n;
-      frame_new_height(fr, n, !up, FALSE);
-    } else {
-      frame_new_height(fr, fr->fr_height - offset, !up, FALSE);
-      break;
+    /* If this is the last frame in a column, may want to resize the parent
+    * frame instead (go two up to skip a row of frames). */
+    while (curfr != topframe && curfr->fr_next == NULL) {
+      if (fr != topframe)
+        fr = fr->fr_parent;
+      curfr = fr;
+      if (fr != topframe)
+        fr = fr->fr_parent;
     }
+
+    if (offset < 0) { /* drag up */
+      up = TRUE;
+      offset = -offset;
+      /* sum up the room of the current frame and above it */
+      if (fr == curfr) {
+        /* only one window */
+        room = fr->fr_height - frame_minheight(fr, NULL);
+      } else {
+        room = 0;
+        for (fr = fr->fr_child;; fr = fr->fr_next) {
+          room += fr->fr_height - frame_minheight(fr, NULL);
+          if (fr == curfr)
+            break;
+        }
+      }
+      fr = curfr->fr_next;                /* put fr at frame that grows */
+    } else { /* drag down */
+      up = FALSE;
+      /*
+      * Only dragging the last status line can reduce p_ch.
+      */
+      room = Rows - cmdline_row;
+      if (curfr->fr_next == NULL)
+        room -= 1;
+      else
+        room -= p_ch;
+      if (room < 0)
+        room = 0;
+      /* sum up the room of frames below of the current one */
+      for (fr = curfr->fr_next; fr != NULL; fr = fr->fr_next)
+        room += fr->fr_height - frame_minheight(fr, NULL);
+      fr = curfr;                         /* put fr at window that grows */
+    }
+
+    if (room < offset)            /* Not enough room */
+      offset = room;              /* Move as far as we can */
+    if (offset <= 0)
+      return;
+
+    /*
+    * Grow frame fr by "offset" lines.
+    * Doesn't happen when dragging the last status line up.
+    */
+    if (fr != NULL)
+      frame_new_height(fr, fr->fr_height + offset, up, FALSE);
+
     if (up)
-      fr = fr->fr_prev;
+      fr = curfr;                 /* current frame gets smaller */
     else
-      fr = fr->fr_next;
+      fr = curfr->fr_next;        /* next frame gets smaller */
+
+    /*
+    * Now make the other frames smaller.
+    */
+    while (fr != NULL && offset > 0) {
+      n = frame_minheight(fr, NULL);
+      if (fr->fr_height - offset <= n) {
+        offset -= fr->fr_height - n;
+        frame_new_height(fr, n, !up, FALSE);
+      } else {
+        frame_new_height(fr, fr->fr_height - offset, !up, FALSE);
+        break;
+      }
+      if (up)
+        fr = fr->fr_prev;
+      else
+        fr = fr->fr_next;
+    }
   }
   row = win_comp_pos();
   grid_fill(&default_grid, row, cmdline_row, 0, (int)Columns, ' ', ' ', 0);
@@ -4758,89 +4826,93 @@ void win_drag_vsep_line(win_T *dragwin, int offset)
   int left;             /* if TRUE, drag separator line left, otherwise right */
   int n;
 
-  fr = dragwin->w_frame;
-  if (fr == topframe)           /* only one window (cannot happen?) */
-    return;
-  curfr = fr;
-  fr = fr->fr_parent;
-  /* When the parent frame is not a row of frames, its parent should be. */
-  if (fr->fr_layout != FR_ROW) {
-    if (fr == topframe)         /* only a column of windows (cannot happen?) */
+  if (ui_is_external(kUIWindows)) {
+    /*win_call_width_inc(dragwin, offset);*/
+  } else {
+    fr = dragwin->w_frame;
+    if (fr == topframe)           /* only one window (cannot happen?) */
       return;
     curfr = fr;
     fr = fr->fr_parent;
-  }
-
-  /* If this is the last frame in a row, may want to resize a parent
-   * frame instead. */
-  while (curfr->fr_next == NULL) {
-    if (fr == topframe)
-      break;
-    curfr = fr;
-    fr = fr->fr_parent;
-    if (fr != topframe) {
+    /* When the parent frame is not a row of frames, its parent should be. */
+    if (fr->fr_layout != FR_ROW) {
+      if (fr == topframe)         /* only a column of windows (cannot happen?) */
+        return;
       curfr = fr;
       fr = fr->fr_parent;
     }
-  }
 
-  if (offset < 0) { /* drag left */
-    left = TRUE;
-    offset = -offset;
-    /* sum up the room of the current frame and left of it */
-    room = 0;
-    for (fr = fr->fr_child;; fr = fr->fr_next) {
-      room += fr->fr_width - frame_minwidth(fr, NULL);
-      if (fr == curfr)
+    /* If this is the last frame in a row, may want to resize a parent
+    * frame instead. */
+    while (curfr->fr_next == NULL) {
+      if (fr == topframe)
         break;
+      curfr = fr;
+      fr = fr->fr_parent;
+      if (fr != topframe) {
+        curfr = fr;
+        fr = fr->fr_parent;
+      }
     }
-    fr = curfr->fr_next;                /* put fr at frame that grows */
-  } else { /* drag right */
-    left = FALSE;
-    /* sum up the room of frames right of the current one */
-    room = 0;
-    for (fr = curfr->fr_next; fr != NULL; fr = fr->fr_next)
-      room += fr->fr_width - frame_minwidth(fr, NULL);
-    fr = curfr;                         /* put fr at window that grows */
-  }
-  assert(fr);
 
-  // Not enough room
-  if (room < offset) {
-    offset = room;  // Move as far as we can
-  }
-
-  // No room at all, quit.
-  if (offset <= 0) {
-    return;
-  }
-
-  if (fr == NULL) {
-    return;  // Safety check, should not happen.
-  }
-
-  /* grow frame fr by offset lines */
-  frame_new_width(fr, fr->fr_width + offset, left, FALSE);
-
-  /* shrink other frames: current and at the left or at the right */
-  if (left)
-    fr = curfr;                 /* current frame gets smaller */
-  else
-    fr = curfr->fr_next;        /* next frame gets smaller */
-
-  while (fr != NULL && offset > 0) {
-    n = frame_minwidth(fr, NULL);
-    if (fr->fr_width - offset <= n) {
-      offset -= fr->fr_width - n;
-      frame_new_width(fr, n, !left, FALSE);
-    } else {
-      frame_new_width(fr, fr->fr_width - offset, !left, FALSE);
-      break;
+    if (offset < 0) { /* drag left */
+      left = TRUE;
+      offset = -offset;
+      /* sum up the room of the current frame and left of it */
+      room = 0;
+      for (fr = fr->fr_child;; fr = fr->fr_next) {
+        room += fr->fr_width - frame_minwidth(fr, NULL);
+        if (fr == curfr)
+          break;
+      }
+      fr = curfr->fr_next;                /* put fr at frame that grows */
+    } else { /* drag right */
+      left = FALSE;
+      /* sum up the room of frames right of the current one */
+      room = 0;
+      for (fr = curfr->fr_next; fr != NULL; fr = fr->fr_next)
+        room += fr->fr_width - frame_minwidth(fr, NULL);
+      fr = curfr;                         /* put fr at window that grows */
     }
+    assert(fr);
+
+    // Not enough room
+    if (room < offset) {
+      offset = room;  // Move as far as we can
+    }
+
+    // No room at all, quit.
+    if (offset <= 0) {
+      return;
+    }
+
+    if (fr == NULL) {
+      return;  // Safety check, should not happen.
+    }
+
+    /* grow frame fr by offset lines */
+    frame_new_width(fr, fr->fr_width + offset, left, FALSE);
+
+    /* shrink other frames: current and at the left or at the right */
     if (left)
-      fr = fr->fr_prev;
+      fr = curfr;                 /* current frame gets smaller */
     else
-      fr = fr->fr_next;
+      fr = curfr->fr_next;        /* next frame gets smaller */
+
+    while (fr != NULL && offset > 0) {
+      n = frame_minwidth(fr, NULL);
+      if (fr->fr_width - offset <= n) {
+        offset -= fr->fr_width - n;
+        frame_new_width(fr, n, !left, FALSE);
+      } else {
+        frame_new_width(fr, fr->fr_width - offset, !left, FALSE);
+        break;
+      }
+      if (left)
+        fr = fr->fr_prev;
+      else
+        fr = fr->fr_next;
+    }
   }
   (void)win_comp_pos();
   redraw_all_later(NOT_VALID);
