@@ -18,6 +18,7 @@ typedef enum {
   kUINewgrid,
   kUIMultigrid,
   kUIHlState,
+  kUIWindows,
   kUIExtCount,
 } UIExtension;
 
@@ -29,6 +30,7 @@ EXTERN const char *ui_ext_names[] INIT(= {
   "ext_newgrid",
   "ext_multigrid",
   "ext_hlstate",
+  "ext_windows",
 });
 
 
