@@ -7161,3 +7161,8 @@ win_T * get_win_by_grid_handle(GridHandle handle)
   }
   return NULL;
 }
+
+void grid_handle_alloc(ScreenGrid *grid)
+{
+  grid->handle = ++last_handle;
+}
