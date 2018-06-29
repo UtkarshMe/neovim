@@ -1904,7 +1904,11 @@ int win_close(win_T *win, int free_buf)
   int dir;
   int help_window = FALSE;
   tabpage_T   *prev_curtab = curtab;
-  frame_T *win_frame = win->w_frame->fr_parent;
+  frame_T *win_frame;
+
+  if (!ui_is_external(kUIWindows)) {
+    win_frame = win->w_frame->fr_parent;
+  }
 
   if (last_window()) {
     EMSG(_("E444: Cannot close last window"));
@@ -2188,11 +2192,15 @@ win_free_mem (
   frame_T     *frp;
   win_T       *wp;
 
-  // TODO(utkarshme): kUIWindows
-  /* Remove the window and its frame from the tree of frames. */
-  frp = win->w_frame;
-  wp = winframe_remove(win, dirp, tp);
-  xfree(frp);
+  if (ui_is_external(kUIWindows)) {
+    // If not handling windows, send the next (or prev) window in the list
+    wp = win->w_next == NULL ? win->w_prev : win->w_next;
+  } else {
+    // Remove the window and its frame from the tree of frames.
+    frp = win->w_frame;
+    wp = winframe_remove(win, dirp, tp);
+    xfree(frp);
+  }
   win_free(win, tp);
 
   /* When deleting the current window of another tab page select a new
