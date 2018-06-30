@@ -986,7 +986,7 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
   // Keep same changelist position in new window.
   wp->w_changelistidx = oldwin->w_changelistidx;
 
-  grid_handle_alloc(&wp->w_grid);
+  grid_assign_handle(&wp->w_grid);
   // TODO(utkarshme): Correct the flags according to the direction in docs
   ui_call_win_split(curwin->handle, curwin->w_grid.handle, wp->handle,
                     wp->w_grid.handle, flags);
@@ -3634,7 +3634,7 @@ win_goto_hor (
 
   if (ui_is_external(kUIWindows)) {
     // TODO(utkarshme): 0, 1 for vertical directions. 2, 3 for horizontal.
-    ui_call_win_move_cursor(2 + left, count);
+    ui_call_win_move_cursor(2 + left, count);  // calls win_goto
     return;
   }
 
