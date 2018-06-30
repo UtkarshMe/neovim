@@ -3629,7 +3629,7 @@ win_goto_hor (
 
   if (ui_is_external(kUIWindows)) {
     // TODO(utkarshme): 0, 1 for vertical directions. 2, 3 for horizontal.
-    ui_call_win_move_cursor(2 + left, count);
+    ui_call_win_move_cursor(2 + left, count);  // calls win_goto
     return;
   }
 

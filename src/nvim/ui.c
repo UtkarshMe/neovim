@@ -474,3 +474,9 @@ void ui_win_position(win_T *wp)
   ui_call_win_position(wp->handle, wp->w_grid.handle, wp->w_winrow,
                        wp->w_wincol, wp->w_width, wp->w_height);
 }
+
+void ui_win_goto(handle_T win_handle, Error *error)
+{
+  win_T *win = find_window_by_handle(win_handle, error);
+  win_goto(win);
+}
