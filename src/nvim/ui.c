@@ -461,3 +461,9 @@ void ui_grid_resize(GridHandle grid_handle, int width, int height, Error *error)
   wp->w_grid.internal_columns = (int)width;
   redraw_win_later(wp, SOME_VALID);
 }
+
+void ui_win_goto(handle_T win_handle, Error *error)
+{
+  win_T *win = find_window_by_handle(win_handle, error);
+  win_goto(win);
+}
