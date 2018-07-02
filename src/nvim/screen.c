@@ -1996,7 +1996,7 @@ static void fold_line(win_T *wp, long fold_count, foldinfo_T *foldinfo, linenr_T
           grid->ScreenAttrs[off + txtcol], win_hl_attr(wp, HLF_CUC));
   }
 
-  grid_move_line(grid, row, 0, wp->w_width, wp->w_width, false, wp, wp->w_hl_attr_normal);
+  grid_move_line(grid, row, 0, grid->Columns, grid->Columns, false, wp, 0);
 
   /*
    * Update w_cline_height and w_cline_folded if the cursor line was
