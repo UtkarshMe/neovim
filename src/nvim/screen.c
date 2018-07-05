@@ -130,10 +130,10 @@ StlClickDefinition *tab_page_click_defs = NULL;
 
 long tab_page_click_defs_size = 0;
 
-/// The last handle that was assigned to a ScreenGrid. 1 is reserved for
-/// the default_grid.
-/// TODO(utkarshme): Numbers can be recycled after grid destruction.
-static int last_handle = 1;
+#define DEFAULT_GRID_HANDLE 1
+/// the lowest handle that can assigned to a ScreenGrid other than the
+/// default_grid.
+#define LOWEST_WIN_GRID_ID (DEFAULT_GRID_HANDLE + 1)
 
 /// Whether to call "ui_call_grid_resize" in win_grid_alloc
 static int send_grid_resize;
@@ -5838,11 +5838,6 @@ void win_grid_alloc(win_T *wp, int doclear)
   grid->OffsetRow = wp->w_winrow;
   grid->OffsetColumn = wp->w_wincol;
 
-  // only assign a grid handle if not already
-  if (grid->handle == 0) {
-    grid->handle = ++last_handle;
-  }
-
   // send grid resize event if:
   // - a grid was just resized
   // - screen_resize was called and all grid sizes must be sent
@@ -5851,6 +5846,17 @@ void win_grid_alloc(win_T *wp, int doclear)
       && ui_is_external(kUIMultigrid)) {
     ui_call_grid_resize(grid->handle, grid->Columns, grid->Rows);
     grid->was_resized = false;
+  }
+}
+
+/// assign a handle to the grid for the window. The grid need not be allocated.
+void win_grid_assign_handle(win_T *wp)
+{
+  static int last_win_grid_id = LOWEST_WIN_GRID_ID - 1;
+
+  // only assign a grid handle if not already
+  if (wp->w_grid.handle == 0) {
+    wp->w_grid.handle = ++last_win_grid_id;
   }
 }
 
@@ -5945,7 +5951,7 @@ retry:
 
   default_grid.OffsetRow = 0;
   default_grid.OffsetColumn = 0;
-  default_grid.handle = 1;
+  default_grid.handle = DEFAULT_GRID_HANDLE;
 
   must_redraw = CLEAR;          /* need to clear the screen later */
   if (doclear)
