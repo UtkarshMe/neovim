@@ -122,6 +122,8 @@
 #define W_ENDCOL(wp)   (wp->w_width + wp->w_wincol)
 #define W_ENDROW(wp)   (wp->w_height + wp->w_winrow)
 
+#define DEFAULT_GRID_HANDLE 1
+
 static match_T search_hl;       /* used for 'hlsearch' highlight matching */
 
 static foldinfo_T win_foldinfo; /* info for 'foldcolumn' */
@@ -129,11 +131,6 @@ static foldinfo_T win_foldinfo; /* info for 'foldcolumn' */
 StlClickDefinition *tab_page_click_defs = NULL;
 
 long tab_page_click_defs_size = 0;
-
-#define DEFAULT_GRID_HANDLE 1
-/// the lowest handle that can assigned to a ScreenGrid other than the
-/// default_grid.
-#define LOWEST_WIN_GRID_ID (DEFAULT_GRID_HANDLE + 1)
 
 /// Whether to call "ui_call_grid_resize" in win_grid_alloc
 static int send_grid_resize;
@@ -5852,7 +5849,7 @@ void win_grid_alloc(win_T *wp, int doclear)
 /// assign a handle to the grid for the window. The grid need not be allocated.
 void win_grid_assign_handle(win_T *wp)
 {
-  static int last_win_grid_id = LOWEST_WIN_GRID_ID - 1;
+  static int last_win_grid_id = DEFAULT_GRID_HANDLE;
 
   // only assign a grid handle if not already
   if (wp->w_grid.handle == 0) {
