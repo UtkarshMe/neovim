@@ -428,7 +428,19 @@ function Screen:wait(check, timeout)
 
     return true
   end
-  run_session(self._session, nil, notification_cb, nil, timeout or self.timeout)
+  local function request_cb(method, args)
+    local handler_name = '_handle_'..method
+    local handler = self[handler_name]
+    if handler ~= nil then
+      handler(self, unpack(args))
+    else
+      assert(self._on_request,
+        "Add Screen:"..handler_name.." or call Screen:set_on_request_handler")
+      self._on_request(method, args)
+    end
+    return true
+  end
+  run_session(self._session, request_cb, notification_cb, nil, timeout or self.timeout)
   if not checked then
     err = check()
   end
@@ -478,6 +490,10 @@ end
 
 function Screen:set_on_event_handler(callback)
   self._on_event = callback
+end
+
+function Screen:set_on_request_handler(callback)
+  self._on_request = callback
 end
 
 function Screen:_handle_resize(width, height)
