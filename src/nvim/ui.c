@@ -57,7 +57,7 @@ static int busy = 0;
 static int mode_idx = SHAPE_IDX_N;
 static bool pending_mode_info_update = false;
 static bool pending_mode_update = false;
-static GridHandle cursor_grid_handle = 1;
+static GridHandle cursor_grid_handle = DEFAULT_GRID_HANDLE;
 
 #if MIN_LOG_LEVEL > DEBUG_LOG_LEVEL
 # define UI_LOG(funname, ...)
