@@ -5,13 +5,18 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "api/private/defs.h"
+#include "nvim/globals.h"
+#include "nvim/api/private/defs.h"
+#include "nvim/highlight_defs.h"
 
 typedef enum {
   kUICmdline = 0,
   kUIPopupmenu,
   kUITabline,
   kUIWildmenu,
+#define kUIGlobalCount (kUIWildmenu+1)
+  kUINewgrid,
+  kUIHlState,
   kUIExtCount,
 } UIExtension;
 
@@ -19,7 +24,9 @@ EXTERN const char *ui_ext_names[] INIT(= {
   "ext_cmdline",
   "ext_popupmenu",
   "ext_tabline",
-  "ext_wildmenu"
+  "ext_wildmenu",
+  "ext_newgrid",
+  "ext_hlstate",
 });
 
 
@@ -33,6 +40,9 @@ struct ui_t {
 #ifdef INCLUDE_GENERATED_DECLARATIONS
 # include "ui_events.generated.h"
 #endif
+  void (*raw_line)(UI *ui, Integer grid, Integer row, Integer startcol,
+                   Integer endcol, Integer clearcol, Integer clearattr,
+                   schar_T *chunk, sattr_T *attrs);
   void (*event)(UI *ui, char *name, Array args, bool *args_consumed);
   void (*stop)(UI *ui);
   void (*inspect)(UI *ui, Dictionary *info);
