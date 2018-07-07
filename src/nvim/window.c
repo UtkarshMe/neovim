@@ -1202,7 +1202,7 @@ static void win_exchange(long Prenum)
   }
 
   if (ui_is_external(kUIWindows)) {
-    ui_call_win_exchange(curwin->handle, curwin->w_grid.handle);
+    ui_call_win_exchange(curwin->handle, curwin->w_grid.handle, Prenum);
     return;
   }
 
