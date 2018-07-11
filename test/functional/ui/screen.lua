@@ -171,7 +171,7 @@ function Screen:attach(options)
   if options == nil then
     options = {rgb=true}
   end
-  --options.ext_newgrid = true
+  options.ext_newgrid = true
   self._options = options
   self._clear_attrs = (options.ext_newgrid and {{},{}}) or {}
   uimeths.attach(self._width, self._height, options)
