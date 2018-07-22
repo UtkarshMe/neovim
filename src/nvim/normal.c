@@ -3440,7 +3440,7 @@ static void display_showcmd(void)
    * spaces
    */
   grid_puts(&default_grid, (char_u *)"          " + len, (int)Rows - 1,
-              sc_col + len, 0);
+            sc_col + len, 0);
 
   setcursor();              /* put cursor back where it belongs */
 }

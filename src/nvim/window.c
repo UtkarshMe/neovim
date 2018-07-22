@@ -4230,8 +4230,9 @@ void win_setheight_win(int height, win_T *win)
    * If there is extra space created between the last window and the command
    * line, clear it.
    */
-  if (full_screen && msg_scrolled == 0 && row < cmdline_row)
+  if (full_screen && msg_scrolled == 0 && row < cmdline_row) {
     grid_fill(&default_grid, row, cmdline_row, 0, (int)Columns, ' ', ' ', 0);
+  }
   cmdline_row = row;
   msg_row = row;
   msg_col = 0;
@@ -5024,10 +5025,11 @@ void command_height(void)
       /* Recompute window positions. */
       (void)win_comp_pos();
 
-      /* clear the lines added to cmdline */
-      if (full_screen)
-        grid_fill(&default_grid, cmdline_row, (int)Rows, 0,
-            (int)Columns, ' ', ' ', 0);
+      // clear the lines added to cmdline
+      if (full_screen) {
+        grid_fill(&default_grid, cmdline_row, (int)Rows, 0, (int)Columns, ' ',
+                  ' ', 0);
+      }
       msg_row = cmdline_row;
       redraw_cmdline = TRUE;
       return;

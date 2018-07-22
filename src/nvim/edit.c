@@ -1520,7 +1520,8 @@ void edit_unputchar(void)
     if (pc_status == PC_STATUS_RIGHT || pc_status == PC_STATUS_LEFT) {
       redrawWinline(curwin->w_cursor.lnum, false);
     } else {
-      grid_puts(&default_grid, pc_bytes, pc_row - msg_scrolled, pc_col, pc_attr);
+      grid_puts(&default_grid, pc_bytes, pc_row - msg_scrolled, pc_col,
+                pc_attr);
     }
   }
 }
