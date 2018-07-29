@@ -4191,6 +4191,7 @@ static void frame_comp_pos(frame_T *topfrp, int *row, int *col)
       wp->w_wincol = *col;
       redraw_win_later(wp, NOT_VALID);
       wp->w_redr_status = TRUE;
+      ui_win_position(wp);
     }
     *row += wp->w_height + wp->w_status_height;
     *col += wp->w_width + wp->w_vsep_width;
