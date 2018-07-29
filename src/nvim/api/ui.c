@@ -533,6 +533,15 @@ static void remote_ui_raw_line(UI *ui, Integer grid, Integer row,
 static void remote_ui_flush(UI *ui)
 {
   UIData *data = ui->data;
+
+  FOR_ALL_WINDOWS_IN_TAB(wp, curtab) {
+    if(wp->w_pos_changed == true) {
+      ui_call_win_position(wp->handle, wp->w_grid.handle, wp->w_winrow,
+                           wp->w_wincol, wp->w_width, wp->w_height);
+      wp->w_pos_changed = false;
+    }
+  }
+
   if (data->buffer.size > 0) {
     if (!ui->ui_ext[kUINewgrid]) {
       remote_ui_cursor_goto(ui, data->cursor_row, data->cursor_col);
