@@ -4331,6 +4331,7 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
   if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
     row += grid->OffsetRow;
     coloff += grid->OffsetColumn;
+    /*grid_copy(grid_new, grid, ..offsets..);*/
     grid = &default_grid;
   }
 
