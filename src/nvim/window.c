@@ -6005,3 +6005,15 @@ void win_findbuf(typval_T *argvars, list_T *list)
     }
   }
 }
+
+void win_ui_flush(void)
+{
+  FOR_ALL_WINDOWS_IN_TAB(wp, curtab) {
+    if(wp->w_pos_changed) {
+      ui_call_win_position(wp->handle, wp->w_grid.handle, wp->w_winrow,
+                           wp->w_wincol, wp->w_width, wp->w_height);
+      wp->w_pos_changed = false;
+    }
+  }
+
+}
