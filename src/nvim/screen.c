@@ -4322,16 +4322,9 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
 # define CHAR_CELLS char_cells
 
   int start_dirty = -1, end_dirty = 0;
+  ScreenGrid new_grid;
 
   if (grid == NULL) {
-    grid = &default_grid;
-  }
-
-  // If UI is not externalized, keep working on the default grid
-  if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
-    row += grid->OffsetRow;
-    coloff += grid->OffsetColumn;
-    /*grid_copy(grid_new, grid, ..offsets..);*/
     grid = &default_grid;
   }
 
@@ -4342,6 +4335,18 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
     endcol = grid->Columns;
   if (coloff > endcol) {
     return;
+  }
+
+  // If UI is not externalized, merge the contents of global and window grids
+  if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
+
+    //TODO(utkarshme): Change back to 1 (or 2)
+    my_grid_alloc(&new_grid, 3, endcol);
+
+    grid_buffer_cpy(&new_grid, &default_grid, row, endcol);
+    grid_buffer_cpy(&new_grid, grid, row, endcol);
+    grid = &new_grid;
+    row = 0;
   }
 
   off_from = (unsigned)(grid->Rows * grid->Columns);
@@ -7263,4 +7268,29 @@ win_T * get_win_by_grid_handle(GridHandle handle)
     }
   }
   return NULL;
+}
+
+void grid_buffer_cpy(ScreenGrid *dest_grid, ScreenGrid *src_grid, int row, int width)
+{
+  assert(width <= dest_grid->Columns);
+
+  dest_grid->LineOffset[0] = 0;
+  memmove(dest_grid->ScreenLines + dest_grid->LineOffset[0],
+          src_grid->ScreenLines + src_grid->LineOffset[row],
+          (size_t)width * sizeof(schar_T));
+  memmove(dest_grid->ScreenAttrs + dest_grid->LineOffset[0],
+          src_grid->ScreenAttrs + src_grid->LineOffset[row],
+          (size_t)width * sizeof(sattr_T));
+}
+
+void my_grid_alloc(ScreenGrid *grid, int rows, int columns)
+{
+  size_t ncells = (size_t)((rows+1) * columns);
+  grid->ScreenLines = xmalloc(ncells * sizeof(schar_T));
+  grid->ScreenAttrs = xmalloc(ncells * sizeof(sattr_T));
+  grid->LineOffset = xmalloc((size_t)(rows * sizeof(unsigned)));
+  grid->LineWraps = xmalloc((size_t)(rows * sizeof(char_u)));
+
+  grid->Rows = rows;
+  grid->Columns = columns;
 }
