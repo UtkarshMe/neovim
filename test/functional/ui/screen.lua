@@ -185,6 +185,9 @@ function Screen:attach(options, session)
   if session == nil then
     session = get_session()
   end
+  if options == nil then
+    options = {}
+  end
   if options.rgb == nil then
     options.rgb = true
   end
