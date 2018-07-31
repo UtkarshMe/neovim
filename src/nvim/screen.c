@@ -4322,7 +4322,6 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
 # define CHAR_CELLS char_cells
 
   int start_dirty = -1, end_dirty = 0;
-  ScreenGrid new_grid;
 
   if (grid == NULL) {
     grid = &default_grid;
@@ -4336,17 +4335,19 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
   if (coloff > endcol) {
     return;
   }
+  #define OFF_FROM(g) ((g).Rows*(g).Columns)
 
   // If UI is not externalized, merge the contents of global and window grids
   if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
-
-    //TODO(utkarshme): Change back to 1 (or 2)
-    my_grid_alloc(&new_grid, 3, endcol);
-
-    grid_buffer_cpy(&new_grid, &default_grid, row, endcol);
-    grid_buffer_cpy(&new_grid, grid, row, endcol);
-    grid = &new_grid;
-    row = 0;
+    row += grid->OffsetRow;
+    coloff += grid->OffsetColumn;
+    memcpy(default_grid.ScreenLines+OFF_FROM(default_grid),
+           grid->ScreenLines+OFF_FROM(*grid),
+           sizeof(schar_T)*grid->Columns);
+    memcpy(default_grid.ScreenAttrs+OFF_FROM(default_grid),
+           grid->ScreenAttrs+OFF_FROM(*grid),
+           sizeof(sattr_T)*grid->Columns);
+    grid = &default_grid;
   }
 
   off_from = (unsigned)(grid->Rows * grid->Columns);
