@@ -989,9 +989,11 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
   wp->w_changelistidx = oldwin->w_changelistidx;
 
   grid_assign_handle(&wp->w_grid);
-  // TODO(utkarshme): Correct the flags according to the direction in docs
-  ui_call_win_split(curwin->handle, curwin->w_grid.handle, wp->handle,
-                    wp->w_grid.handle, flags);
+  if (ui_is_external(kUIWindows)) {
+    // TODO(utkarshme): Correct the flags according to the direction in docs
+    ui_call_win_split(curwin->handle, curwin->w_grid.handle, wp->handle,
+                      wp->w_grid.handle, flags);
+  }
 
   /*
    * make the new window the current window
