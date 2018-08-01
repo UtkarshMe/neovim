@@ -5107,7 +5107,7 @@ win_redr_custom (
           *wp->w_p_stl == NUL ? 0 : OPT_LOCAL);
     }
 
-    col += wp->w_winrow;
+    col += wp->w_wincol;
   }
 
   if (maxwidth <= 0)
