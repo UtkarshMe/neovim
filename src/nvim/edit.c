@@ -1479,8 +1479,8 @@ void edit_putchar(int c, int highlight)
     } else {
       attr = 0;
     }
-    pc_row = curwin->w_winrow + curwin->w_wrow;
-    pc_col = curwin->w_wincol;
+    pc_row = curwin->w_wrow;
+    pc_col = 0;
     pc_status = PC_STATUS_UNSET;
     if (curwin->w_p_rl) {
       pc_col += curwin->w_width - 1 - curwin->w_wcol;
@@ -1488,8 +1488,8 @@ void edit_putchar(int c, int highlight)
         int fix_col = mb_fix_col(pc_col, pc_row);
 
         if (fix_col != pc_col) {
-          grid_putchar(&default_grid, ' ', pc_row, fix_col, attr);
-          (curwin->w_wcol)--;
+          grid_putchar(&curwin->w_grid, ' ', pc_row, fix_col, attr);
+          curwin->w_wcol--;
           pc_status = PC_STATUS_RIGHT;
         }
       }
@@ -1501,10 +1501,10 @@ void edit_putchar(int c, int highlight)
 
     /* save the character to be able to put it back */
     if (pc_status == PC_STATUS_UNSET) {
-      grid_getbytes(&default_grid, pc_row, pc_col, pc_bytes, &pc_attr);
+      grid_getbytes(&curwin->w_grid, pc_row, pc_col, pc_bytes, &pc_attr);
       pc_status = PC_STATUS_SET;
     }
-    grid_putchar(&default_grid, c, pc_row, pc_col, attr);
+    grid_putchar(&curwin->w_grid, c, pc_row, pc_col, attr);
   }
 }
 
@@ -1520,7 +1520,7 @@ void edit_unputchar(void)
     if (pc_status == PC_STATUS_RIGHT || pc_status == PC_STATUS_LEFT) {
       redrawWinline(curwin->w_cursor.lnum, false);
     } else {
-      grid_puts(&default_grid, pc_bytes, pc_row - msg_scrolled, pc_col, pc_attr);
+      grid_puts(&curwin->w_grid, pc_bytes, pc_row - msg_scrolled, pc_col, pc_attr);
     }
   }
 }
