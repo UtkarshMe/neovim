@@ -157,6 +157,6 @@ describe("ui_options in metadata", function()
     local options = api.ui_options
     eq({'rgb', 'ext_cmdline', 'ext_popupmenu',
         'ext_tabline', 'ext_wildmenu', 'ext_newgrid', 'ext_multigrid',
-        'ext_hlstate'}, options)
+        'ext_hlstate', 'ext_windows'}, options)
   end)
 end)
