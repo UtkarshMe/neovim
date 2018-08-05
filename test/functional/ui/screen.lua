@@ -200,6 +200,9 @@ function Screen:attach(options, session)
   if options == nil then
     options = {}
   end
+  if options.ext_newgrid == nil then
+    options.ext_newgrid = true
+  end
   if options.ext_multigrid then
     options.ext_newgrid = true
     self._multigrid = true
@@ -970,10 +973,7 @@ function Screen:print_snapshot(attrs, ignore)
     attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids)
   end
 
-  local lines = {}
-  for i = 1, self._height do
-    table.insert(lines, "  "..self:_row_repr(self._rows[i], attr_state, true).."|")
-  end
+  local lines = self:render(true, attr_state, true)
 
   local ext_state = self:_extstate_repr(attr_state)
   local keys = false
