@@ -4361,7 +4361,7 @@ void win_setheight_win(int height, win_T *win)
     frame_setheight(win->w_frame, height + win->w_status_height);
     win_grid_alloc(win, false);
   } else {
-    ui_call_win_height_set(win->handle, win->w_grid.handle, height);
+    ui_call_win_resize(win->handle, win->w_grid.handle, win->w_width, height);
   }
 
   /* recompute the window positions */
@@ -4563,7 +4563,7 @@ void win_setwidth_win(int width, win_T *wp)
     frame_setwidth(wp->w_frame, width + wp->w_vsep_width);
     win_grid_alloc(wp, false);
   } else {
-    ui_call_win_width_set(wp->handle, wp->w_grid.handle, width);
+    ui_call_win_resize(wp->handle, wp->w_grid.handle, width, wp->w_height);
   }
 
   /* recompute the window positions */
