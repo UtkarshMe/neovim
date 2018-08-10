@@ -65,6 +65,10 @@
 
 # define ROWS_AVAIL (Rows - p_ch - tabline_height())
 
+#define UI_WIN_FLAGS(FLAGS) \
+  ((flags & WSP_VERT) == 0 \
+  ? ((flags & WSP_BOT) || (flags & WSP_BELOW) || !(flags & WSP_ABOVE) ? 0 : 1 )\
+  : ((flags & WSP_BOT) || (flags & WSP_BELOW) || !(flags & WSP_ABOVE) ? 2 : 3 ))
 
 static char *m_onlyone = N_("Already only one window");
 
@@ -990,9 +994,8 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
 
   grid_assign_handle(&wp->w_grid);
   if (ui_is_external(kUIWindows)) {
-    // TODO(utkarshme): Correct the flags according to the direction in docs
     ui_call_win_split(curwin->handle, curwin->w_grid.handle, wp->handle,
-                      wp->w_grid.handle, flags);
+                      wp->w_grid.handle, UI_WIN_FLAGS(flags));
   }
 
   /*
@@ -1380,8 +1383,7 @@ static void win_totop(int size, int flags)
   }
 
   if (ui_is_external(kUIWindows)) {
-    // TODO(utkarshme): Correct the flags according to the direction in docs
-    ui_call_win_move(curwin->handle, curwin->w_grid.handle, flags);
+    ui_call_win_move(curwin->handle, curwin->w_grid.handle, UI_WIN_FLAGS(flags));
     return;
   }
 
