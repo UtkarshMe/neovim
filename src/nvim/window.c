@@ -4318,7 +4318,7 @@ void win_setheight_win(int height, win_T *win)
   if (!ui_is_external(kUIWindows)) {
     frame_setheight(win->w_frame, height + win->w_status_height);
   } else {
-    ui_call_win_height_set(win->handle, win->w_grid.handle, height);
+    ui_call_win_resize(win->handle, win->w_grid.handle, win->w_width, height);
   }
 
   /* recompute the window positions */
@@ -4518,7 +4518,7 @@ void win_setwidth_win(int width, win_T *wp)
   if (!ui_is_external(kUIWindows)) {
     frame_setwidth(wp->w_frame, width + wp->w_vsep_width);
   } else {
-    ui_call_win_width_set(wp->handle, wp->w_grid.handle, width);
+    ui_call_win_resize(wp->handle, wp->w_grid.handle, width, wp->w_height);
   }
 
   /* recompute the window positions */
