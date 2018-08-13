@@ -271,7 +271,7 @@ void nvim_ui_try_resize_grid(uint64_t channel_id, Integer grid, Integer width,
 ///
 /// On invalid window handle, fails with error.
 ///
-/// @param grid    The handle of the window to be changed.
+/// @param winid   The handle of the window to be changed.
 /// @param width   The new width.
 /// @param height  The new height.
 void nvim_ui_try_resize_win(uint64_t channel_id, Integer winid, Integer width,
