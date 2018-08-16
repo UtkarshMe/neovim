@@ -17,6 +17,8 @@
 #include "nvim/popupmnu.h"
 #include "nvim/cursor_shape.h"
 #include "nvim/highlight.h"
+#include "nvim/window.h"
+#include "nvim/screen.h"
 
 #ifdef INCLUDE_GENERATED_DECLARATIONS
 # include "api/ui.c.generated.h"
@@ -35,6 +37,8 @@ typedef struct {
 } UIData;
 
 static PMap(uint64_t) *connected_uis = NULL;
+
+static UI *ext_win_ui = NULL;
 
 void remote_ui_init(void)
   FUNC_API_NOEXPORT
@@ -109,6 +113,13 @@ void nvim_ui_attach(uint64_t channel_id, Integer width, Integer height,
       xfree(ui);
       return;
     }
+  }
+
+  if (ui->ui_ext[kUIWindows]) {
+    if (ext_win_ui == NULL) {
+      ext_win_ui = ui;
+    }
+    ui->ui_ext[kUIMultigrid] = true;
   }
 
   if (ui->ui_ext[kUIHlState] || ui->ui_ext[kUIMultigrid]) {
@@ -251,6 +262,42 @@ void nvim_ui_try_resize_grid(uint64_t channel_id, Integer grid, Integer width,
   }
 
   ui_grid_resize((GridHandle)grid, (int)width, (int)height, error);
+}
+
+/// Tell nvim to resize a window. Nvim sends win_resize event with the
+/// window size when ext_windows is set. Once the UI decides on the size
+/// which maybe same or different from what was sent in win_resize, the UI
+/// must call this method to inform nvim about it.
+///
+/// On invalid window handle, fails with error.
+///
+/// @param winid   The handle of the window to be changed.
+/// @param width   The new width.
+/// @param height  The new height.
+void nvim_ui_try_resize_win(uint64_t channel_id, Integer winid, Integer width,
+                            Integer height, Error *error)
+  FUNC_API_SINCE(5) FUNC_API_REMOTE_ONLY
+{
+  if (!pmap_has(uint64_t)(connected_uis, channel_id)) {
+    api_set_error(error, kErrorTypeException,
+                  "UI not attached to channel: %" PRId64, channel_id);
+    return;
+  }
+
+  // TODO(utkarshme): Validate the new size (or maybe the client should take
+  // care of it.
+
+  // TODO: put it in a function and check for all tabs
+  win_T *wp = NULL;
+  FOR_ALL_WINDOWS_IN_TAB(wp, curtab) {
+    if (wp->handle == winid) {
+      break;
+    }
+  }
+
+  win_new_width(wp, (int)width);
+  win_new_height(wp, (int)height);
+  redraw_win_later(wp, CLEAR);
 }
 
 /// Pushes data into UI.UIData, to be consumed later by remote_ui_flush().
@@ -594,4 +641,45 @@ static void remote_ui_inspect(UI *ui, Dictionary *info)
 {
   UIData *data = ui->data;
   PUT(*info, "chan", INTEGER_OBJ((Integer)data->channel_id));
+}
+
+Integer ui_win_move_cursor(Integer direction, Integer count)
+{
+  UI *ui = ext_win_ui;
+  Array args = ARRAY_DICT_INIT;
+  UIData *data;
+  Error error = ERROR_INIT;
+  typval_T rettv;
+
+  if (!ui_is_external(kUIWindows) || ui == NULL) {
+    abort();  // this should never happen
+  }
+  data = ui->data;
+
+  ADD(args, INTEGER_OBJ(direction));
+  ADD(args, INTEGER_OBJ(count));
+
+  Object result = rpc_send_call(data->channel_id, "win_move_cursor", args,
+                                &error);
+
+  if (ERROR_SET(&error)) {
+    EMSG2(_("Error invoking win_move_cursor: %s"), error.msg);
+    api_clear_error(&error);
+    api_free_object(result);
+    return 0;
+  }
+
+  if (result.type != kObjectTypeInteger) {
+    api_set_error(&error, kErrorTypeValidation,
+                  "Error converting the call result: %s", error.msg);
+    api_clear_error(&error);
+    api_free_object(result);
+    return 0;
+  }
+
+  if (rettv.v_type == VAR_NUMBER) {
+    return (Integer)rettv.vval.v_number;
+  } else {
+    return 0;
+  }
 }
