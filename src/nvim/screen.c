@@ -118,9 +118,8 @@
 
 #define MB_FILLER_CHAR '<'  /* character used when a double-width character
                              * doesn't fit. */
-
-#define W_ENDCOL(wp)   (wp->w_width + wp->w_wincol)
-#define W_ENDROW(wp)   (wp->w_height + wp->w_winrow)
+#define W_ENDCOL(wp)   (wp->w_wincol + wp->w_width)
+#define W_ENDROW(wp)   (wp->w_winrow + wp->w_height)
 
 // Get the offset for the current line buffer when redrawing a line for a grid
 #define GRID_TMPLINE(grid) ((grid)->Rows * (grid)->Columns)
