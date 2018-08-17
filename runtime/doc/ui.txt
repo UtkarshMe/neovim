@@ -31,7 +31,7 @@ a dictionary with these (optional) keys:
 	`ext_wildmenu`		Externalize the wildmenu. |ui-ext-wildmenu|
 	`ext_newgrid`		Use new revision of the grid events. |ui-newgrid|
 	`ext_multigrid`		Use per-window grid based events. |ui-multigrid|
-	`ext_hlstate`		Use detailed highlight state.  |ui-hlstate|
+	`ext_hlstate`		Use detailed highlight state. |ui-hlstate|
 
 Specifying a non-existent option is an error. UIs can check the |api-metadata|
 `ui_options` key for supported options. Additionally Nvim (currently) requires
