@@ -5892,6 +5892,7 @@ void win_grid_alloc(win_T *wp, int doclear)
   ScreenGrid *grid = &wp->w_grid;
   int rows = grid->internal_rows;
   int columns = grid->internal_columns;
+  int was_resized = 0;
 
   if (rows == 0) {
     rows = wp->w_height;
@@ -5904,7 +5905,7 @@ void win_grid_alloc(win_T *wp, int doclear)
       || grid->Rows != rows
       || grid->Columns != columns) {
     grid_alloc(grid, rows, columns, doclear);
-    grid->was_resized = true;
+    was_resized = true;
   }
 
   grid->OffsetRow = wp->w_winrow;
@@ -5916,10 +5917,10 @@ void win_grid_alloc(win_T *wp, int doclear)
   // - a grid was just resized
   // - screen_resize was called and all grid sizes must be sent
   // - the UI wants multigrid event (necessary)
-  if ((send_grid_resize || grid->was_resized)
+  if ((send_grid_resize || was_resized)
       && ui_is_external(kUIMultigrid)) {
     ui_call_grid_resize(grid->handle, grid->Columns, grid->Rows);
-    grid->was_resized = false;
+    was_resized = false;
   }
 }
 
