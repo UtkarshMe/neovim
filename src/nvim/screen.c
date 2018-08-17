@@ -4221,10 +4221,10 @@ win_line (
          * Don't do this for a window not at the right screen border.
          */
         if (!(has_mbyte
-                 && ((*mb_off2cells)(grid->LineOffset[row],
+                 && ((*mb_off2cells)(grid, grid->LineOffset[row],
                                      grid->LineOffset[row] + grid->Columns)
                      == 2
-                     || (*mb_off2cells)(grid->LineOffset[row - 1]
+                     || (*mb_off2cells)(grid, grid->LineOffset[row - 1]
                                         + (int)grid->Columns - 2,
                                         grid->LineOffset[row] + grid->Columns)
                      == 2))
@@ -4283,7 +4283,7 @@ static int grid_char_needs_redraw(ScreenGrid *grid, int off_from, int off_to,
   return (cols > 0
           && ((schar_cmp(grid->ScreenLines[off_from], grid->ScreenLines[off_to])
                || grid->ScreenAttrs[off_from] != grid->ScreenAttrs[off_to]
-               || ((*mb_off2cells)(off_from, off_from + cols) > 1
+               || ((*mb_off2cells)(grid, off_from, off_from + cols) > 1
                    && schar_cmp(grid->ScreenLines[off_from + 1],
                                 grid->ScreenLines[off_to + 1])))
               || p_wd < 0));
@@ -4381,7 +4381,7 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
 
   while (col < endcol) {
     if (has_mbyte && (col + 1 < endcol))
-      char_cells = (*mb_off2cells)(off_from, max_off_from);
+      char_cells = (*mb_off2cells)(grid, off_from, max_off_from);
     else
       char_cells = 1;
 
@@ -4402,10 +4402,10 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
       // char over the left halve of an existing one
       if (has_mbyte && col + char_cells == endcol
           && ((char_cells == 1
-               && (*mb_off2cells)(off_to, max_off_to) > 1)
+               && (*mb_off2cells)(grid, off_to, max_off_to) > 1)
               || (char_cells == 2
-                  && (*mb_off2cells)(off_to, max_off_to) == 1
-                  && (*mb_off2cells)(off_to + 1, max_off_to) > 1))) {
+                  && (*mb_off2cells)(grid, off_to, max_off_to) == 1
+                  && (*mb_off2cells)(grid, off_to + 1, max_off_to) > 1))) {
         clear_next = true;
       }
 
@@ -5343,7 +5343,7 @@ void grid_puts_len(ScreenGrid *grid, char_u *text, int textlen, int row,
 
   /* When drawing over the right halve of a double-wide char clear out the
    * left halve.  Only needed in a terminal. */
-  if (col > 0 && col < grid->Columns && mb_fix_col(col, row) != col) {
+  if (col > 0 && col < grid->Columns && mb_fix_col(grid, col, row) != col) {
     schar_from_ascii(grid->ScreenLines[off - 1], ' ');
     grid->ScreenAttrs[off - 1] = 0;
     // redraw the previous cell, make it empty
@@ -5418,10 +5418,10 @@ void grid_puts_len(ScreenGrid *grid, char_u *text, int textlen, int row,
         clear_next_cell = false;
       } else if ((len < 0 ? ptr[mbyte_blen] == NUL
                   : ptr + mbyte_blen >= text + len)
-                 && ((mbyte_cells == 1 && (*mb_off2cells)(off, max_off) > 1)
+                 && ((mbyte_cells == 1 && (*mb_off2cells)(grid, off, max_off) > 1)
                      || (mbyte_cells == 2
-                         && (*mb_off2cells)(off, max_off) == 1
-                         && (*mb_off2cells)(off + 1, max_off) > 1))) {
+                         && (*mb_off2cells)(grid, off, max_off) == 1
+                         && (*mb_off2cells)(grid, off + 1, max_off) > 1))) {
         clear_next_cell = true;
       }
 
@@ -5799,10 +5799,10 @@ void grid_fill(ScreenGrid *grid, int start_row, int end_row, int start_col,
       // out the left halve.  When drawing over the left halve of a
       // double wide-char clear out the right halve.  Only needed in a
       // terminal.
-      if (start_col > 0 && mb_fix_col(start_col, row) != start_col) {
+      if (start_col > 0 && mb_fix_col(grid, start_col, row) != start_col) {
         grid_puts_len(grid, (char_u *)" ", 1, row, start_col - 1, 0);
       }
-      if (end_col < grid->Columns && mb_fix_col(end_col, row) != end_col) {
+      if (end_col < grid->Columns && mb_fix_col(grid, end_col, row) != end_col) {
         grid_puts_len(grid, (char_u *)" ", 1, row, end_col, 0);
       }
     }
@@ -7094,7 +7094,7 @@ int number_width(win_T *wp)
 
   if (wp->w_p_rnu && !wp->w_p_nu)
     /* cursor line shows "0" */
-    lnum = wp->w_height;
+    lnum = wp->w_grid.Rows;
   else
     /* cursor line shows absolute line number */
     lnum = wp->w_buffer->b_ml.ml_line_count;
