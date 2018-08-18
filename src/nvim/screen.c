@@ -4225,7 +4225,7 @@ win_line (
 
       if (ui_current_row() == row - 1
           && filler_todo <= 0
-          && wp->w_width == grid->Columns) {
+          && grid->Columns == default_grid.Columns) {
         /* Remember that the line wraps, used for modeless copy. */
         grid->LineWraps[row - 1] = TRUE;
 
