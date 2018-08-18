@@ -1636,8 +1636,8 @@ static void win_draw_end(win_T *wp, int c1, int c2, int row, int endrow, hlf_T h
 
     if (n > 0) {
       /* draw the fold column at the right */
-      if (n > wp->w_width)
-        n = wp->w_width;
+      if (n > wp->w_grid.Columns)
+        n = wp->w_grid.Columns;
       grid_fill(&wp->w_grid, row, endrow, wp->w_grid.Columns - n,
                 wp->w_grid.Columns, ' ', ' ', win_hl_attr(wp, HLF_FC));
     }
@@ -1646,8 +1646,8 @@ static void win_draw_end(win_T *wp, int c1, int c2, int row, int endrow, hlf_T h
         int nn = n + win_signcol_width(wp);
 
         /* draw the sign column left of the fold column */
-        if (nn > wp->w_width) {
-            nn = wp->w_width;
+        if (nn > wp->w_grid.Columns) {
+            nn = wp->w_grid.Columns;
         }
         grid_fill(&wp->w_grid, row, endrow, wp->w_grid.Columns - nn,
                   wp->w_grid.Columns - n, ' ', ' ', win_hl_attr(wp, HLF_SC));
@@ -1663,8 +1663,8 @@ static void win_draw_end(win_T *wp, int c1, int c2, int row, int endrow, hlf_T h
     if (cmdwin_type != 0 && wp == curwin) {
       /* draw the cmdline character in the leftmost column */
       n = 1;
-      if (n > wp->w_width)
-        n = wp->w_width;
+      if (n > wp->w_grid.Columns)
+        n = wp->w_grid.Columns;
       grid_fill(&wp->w_grid, row, endrow, 0, n, cmdwin_type, ' ',
                 win_hl_attr(wp, HLF_AT));
     }
@@ -1672,8 +1672,8 @@ static void win_draw_end(win_T *wp, int c1, int c2, int row, int endrow, hlf_T h
       int nn = n + fdc;
 
       /* draw the fold column at the left */
-      if (nn > wp->w_width)
-        nn = wp->w_width;
+      if (nn > wp->w_grid.Columns)
+        nn = wp->w_grid.Columns;
       grid_fill(&wp->w_grid, row, endrow, n, nn, ' ', ' ',
                 win_hl_attr(wp, HLF_FC));
       n = nn;
@@ -1683,8 +1683,8 @@ static void win_draw_end(win_T *wp, int c1, int c2, int row, int endrow, hlf_T h
         int nn = n + win_signcol_width(wp);
 
         /* draw the sign column after the fold column */
-        if (nn > wp->w_width) {
-            nn = wp->w_width;
+        if (nn > wp->w_grid.Columns) {
+            nn = wp->w_grid.Columns;
         }
         grid_fill(&wp->w_grid, row, endrow, n, nn, ' ', ' ',
                   win_hl_attr(wp, HLF_SC));
@@ -1713,7 +1713,7 @@ static int compute_foldcolumn(win_T *wp, int col)
 {
   int fdc = wp->w_p_fdc;
   int wmw = wp == curwin && p_wmw == 0 ? 1 : p_wmw;
-  int wwidth = wp->w_width;
+  int wwidth = wp->w_grid.Columns;
 
   if (fdc > wwidth - (col + wmw)) {
     fdc = wwidth - (col + wmw);
