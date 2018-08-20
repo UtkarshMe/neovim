@@ -4327,10 +4327,6 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
                                             // 2: occupies two display cells
   int start_dirty = -1, end_dirty = 0;
 
-  if (grid == NULL) {
-    grid = &default_grid;
-  }
-
   /* Check for illegal row and col, just in case. */
   if (row >= grid->Rows)
     row = grid->Rows - 1;
@@ -4341,7 +4337,7 @@ static void grid_move_line(ScreenGrid *grid, int row, int coloff, int endcol,
   }
 
   // If UI is not externalized, merge the contents of global and window grids
-  if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
+  if (!ui_is_external(kUIMultigrid)) {
     row += grid->OffsetRow;
     coloff += grid->OffsetColumn;
     memcpy(default_grid.ScreenLines + GRID_TMPLINE(&default_grid),
@@ -5325,12 +5321,8 @@ void grid_puts_len(ScreenGrid *grid, char_u *text, int textlen, int row,
   int need_redraw;
   bool do_flush = false;
 
-  if (grid == NULL) {
-    grid = &default_grid;
-  }
-
   // If UI is not externalized, keep working on the default grid
-  if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
+  if (!ui_is_external(kUIMultigrid)) {
     row += grid->OffsetRow;
     col += grid->OffsetColumn;
     grid = &default_grid;
@@ -5783,12 +5775,8 @@ void grid_fill(ScreenGrid *grid, int start_row, int end_row, int start_col,
 {
   schar_T sc;
 
-  if (grid == NULL) {
-    grid = &default_grid;
-  }
-
   // if grids are not externalized, keep working on the default_grid
-  if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
+  if (!ui_is_external(kUIMultigrid)) {
     start_row += grid->OffsetRow;
     end_row += grid->OffsetRow;
     start_col += grid->OffsetColumn;
@@ -6315,12 +6303,8 @@ int grid_ins_lines(ScreenGrid *grid, int row, int line_count, int end,
   int j;
   unsigned temp;
 
-  if (grid == NULL) {
-    grid = &default_grid;
-  }
-
   // If UI is not externalized, keep working on default grid
-  if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
+  if (!ui_is_external(kUIMultigrid)) {
     row += grid->OffsetRow;
     end += grid->OffsetRow;
     col += grid->OffsetColumn;
@@ -6374,12 +6358,8 @@ int grid_del_lines(ScreenGrid *grid, int row, int line_count, int end,
   int i;
   unsigned temp;
 
-  if (grid == NULL) {
-    grid = &default_grid;
-  }
-
   // If UI is not externalized, keep working on default grid
-  if (!ui_is_external(kUIMultigrid) && grid != &default_grid) {
+  if (!ui_is_external(kUIMultigrid)) {
     row += grid->OffsetRow;
     end += grid->OffsetRow;
     col += grid->OffsetColumn;
