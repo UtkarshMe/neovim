@@ -241,7 +241,7 @@ static void ui_set_option(UI *ui, bool init, String name, Object value,
 /// @param width   The new requested width.
 /// @param height  The new requested height.
 void nvim_ui_try_resize_grid(uint64_t channel_id, Integer grid, Integer width,
-                          Integer height, Error *error)
+                             Integer height, Error *error)
   FUNC_API_SINCE(5) FUNC_API_REMOTE_ONLY
 {
   if (!pmap_has(uint64_t)(connected_uis, channel_id)) {

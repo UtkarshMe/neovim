@@ -1,9 +1,8 @@
 local helpers = require('test.functional.helpers')(after_each)
 local Screen = require('test.functional.ui.screen')
-local spawn, set_session, clear = helpers.spawn, helpers.set_session, helpers.clear
-local feed, command = helpers.feed, helpers.command
-local insert = helpers.insert
-local eq, iswin = helpers.eq, helpers.iswin
+local spawn, set_session = helpers.spawn, helpers.set_session
+local feed, command, insert = helpers.feed, helpers.command, helpers.insert
+local eq = helpers.eq
 
 -- Note 1:
 -- Global grid i.e. "grid 1" shows some unwanted elements because they are
