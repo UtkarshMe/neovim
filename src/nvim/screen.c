@@ -6303,7 +6303,8 @@ void screenclear(void)
 
 static void grid_clear(ScreenGrid *grid)
 {
-  if (starting == NO_SCREEN || grid->ScreenLines == NULL) {
+  if (starting == NO_SCREEN || default_grid.ScreenLines == NULL
+      || grid->Rows == 0) {
     return;
   }
 
