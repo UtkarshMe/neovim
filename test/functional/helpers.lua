@@ -167,34 +167,34 @@ local function expect_msg_seq(...)
   error(final_error)
 end
 
-local function call_and_stop_on_error(session, ...)
+local function call_and_stop_on_error(lsession, ...)
   local status, result = copcall(...)  -- luacheck: ignore
   if not status then
-    session:stop()
+    lsession:stop()
     last_error = result
     return ''
   end
   return result
 end
 
-local function run_session(session, request_cb, notification_cb, setup_cb, timeout)
+local function run_session(lsession, request_cb, notification_cb, setup_cb, timeout)
   local on_request, on_notification, on_setup
 
   if request_cb then
     function on_request(method, args)
-      return call_and_stop_on_error(session, request_cb, method, args)
+      return call_and_stop_on_error(lsession, request_cb, method, args)
     end
   end
 
   if notification_cb then
     function on_notification(method, args)
-      call_and_stop_on_error(session, notification_cb, method, args)
+      call_and_stop_on_error(lsession, notification_cb, method, args)
     end
   end
 
   if setup_cb then
     function on_setup()
-      call_and_stop_on_error(session, setup_cb)
+      call_and_stop_on_error(lsession, setup_cb)
     end
   end
 

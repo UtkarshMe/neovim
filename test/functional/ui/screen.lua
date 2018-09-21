@@ -171,7 +171,7 @@ function Screen.new(width, height)
     _multigrid = false
   }, Screen)
   local function ui(method, ...)
-    status, rv = self._session:request('nvim_ui_'..method, ...)
+    local status, rv = self._session:request('nvim_ui_'..method, ...)
     if not status then
       error(rv[2])
     end
@@ -347,7 +347,7 @@ function Screen:expect(expected, attr_ids, attr_ignore)
       attr_state.id_to_index = self:hlstate_check_attrs(attr_state.ids or {})
     end
 
-    local actual_rows = self:render(not any, attr_state)
+    local actual_rows = self:render(not expected.any, attr_state)
 
     if expected.any ~= nil then
       -- Search for `any` anywhere in the screen lines.
@@ -916,29 +916,6 @@ function Screen:redraw_debug(attrs, ignore, timeout)
   run_session(self._session, nil, notification_cb, nil, timeout)
 end
 
-function Screen:find_attrs(attrs, id_to_index)
-  for i,grid in ipairs(self._grids) do
-    for i = 1, grid.height do
-      local row = grid.rows[i]
-      for j = 1, grid.width do
-        if self._options.ext_hlstate then
-          local hl_id = row[j].hl_id
-          if hl_id ~= 0 then
-            self:_insert_hl_id(attrs, id_to_index, hl_id)
-          end
-        else
-          local attr = row[j].attrs
-          if self:_attr_index(attrs, attr) == nil and self:_attr_index(ignore, attr) == nil then
-            if not self:_equal_attrs(attr, {}) then
-              table.insert(attrs, attr)
-            end
-          end
-        end
-      end
-    end
-  end
-end
-
 function Screen:render(headers, attr_state, preview)
   headers = headers and self._multigrid
   local rv = {}
@@ -947,8 +924,8 @@ function Screen:render(headers, attr_state, preview)
       table.insert(rv, "## grid "..igrid)
     end
     for i = 1, grid.height do
-      cursor = self._cursor.grid == igrid and self._cursor.row == i
-      prefix = (headers or preview) and "  " or ""
+      local cursor = self._cursor.grid == igrid and self._cursor.row == i
+      local prefix = (headers or preview) and "  " or ""
       table.insert(rv, prefix..self:_row_repr(grid.rows[i], attr_state, cursor).."|")
     end
   end
