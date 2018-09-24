@@ -490,7 +490,7 @@ Integer ui_win_move_cursor(Integer direction, Integer count)
 
   if (result.type != kObjectTypeInteger) {
     api_set_error(&error, kErrorTypeValidation,
-                  "Error converting the call result: %s", error.msg);
+                  "Error converting the call result: %s");
     api_clear_error(&error);
     api_free_object(result);
     return 0;
