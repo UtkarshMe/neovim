@@ -35,6 +35,7 @@
 #include "nvim/highlight.h"
 #include "nvim/window.h"
 #include "nvim/cursor_shape.h"
+#include "nvim/msgpack_rpc/channel.h"
 #ifdef FEAT_TUI
 # include "nvim/tui/tui.h"
 #else
@@ -58,6 +59,7 @@ static int mode_idx = SHAPE_IDX_N;
 static bool pending_mode_info_update = false;
 static bool pending_mode_update = false;
 static GridHandle cursor_grid_handle = DEFAULT_GRID_HANDLE;
+static uint64_t ext_win_ui_channel = 0;
 
 #if MIN_LOG_LEVEL > DEBUG_LOG_LEVEL
 # define UI_LOG(funname, ...)
@@ -460,4 +462,43 @@ void ui_grid_resize(GridHandle grid_handle, int width, int height, Error *error)
   wp->w_grid.internal_rows = (int)height;
   wp->w_grid.internal_columns = (int)width;
   redraw_win_later(wp, SOME_VALID);
+}
+
+void ui_set_ext_win_channel(uint64_t channel_id)
+{
+  ext_win_ui_channel = channel_id;
+}
+
+Integer ui_win_move_cursor(Integer direction, Integer count)
+{
+  Array args = ARRAY_DICT_INIT;
+  Error error = ERROR_INIT;
+  typval_T rettv;
+
+  ADD(args, INTEGER_OBJ(direction));
+  ADD(args, INTEGER_OBJ(count));
+
+  Object result = rpc_send_call(ext_win_ui_channel, "win_move_cursor", args,
+                                &error);
+
+  if (ERROR_SET(&error)) {
+    EMSG2(_("Error invoking win_move_cursor: %s"), error.msg);
+    api_clear_error(&error);
+    api_free_object(result);
+    return 0;
+  }
+
+  if (result.type != kObjectTypeInteger) {
+    api_set_error(&error, kErrorTypeValidation,
+                  "Error converting the call result: %s", error.msg);
+    api_clear_error(&error);
+    api_free_object(result);
+    return 0;
+  }
+
+  if (rettv.v_type == VAR_NUMBER) {
+    return (Integer)rettv.vval.v_number;
+  } else {
+    return 0;
+  }
 }
