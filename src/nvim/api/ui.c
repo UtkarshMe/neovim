@@ -115,8 +115,7 @@ void nvim_ui_attach(uint64_t channel_id, Integer width, Integer height,
 
   if (ui->ui_ext[kUIWindows]) {
     if (ext_win_ui == NULL) {
-      UIData *data = ui->data;
-      ui_set_ext_win_channel(data->channel_id);
+      ui_set_ext_win_channel(channel_id);
       ext_win_ui = ui;
     }
     ui->ui_ext[kUIMultigrid] = true;
