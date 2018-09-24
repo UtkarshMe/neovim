@@ -15,7 +15,7 @@ describe('In ext-win mode', function()
     set_session(screen_nvim)
     screen = Screen.new(15, 5)
     -- TODO(utkarshme): should not have to set ext_multigrid
-    screen:attach({ext_windows=true, ext_multigrid=true})
+    screen:attach({ext_windows=true})
     screen:set_default_attr_ids({
       [1] = {bold = true, reverse = true},
       [2] = {bold = true, foreground = Screen.colors.Blue1},

@@ -203,6 +203,10 @@ function Screen:attach(options, session)
   if options.ext_newgrid == nil then
     options.ext_newgrid = true
   end
+
+  if options.ext_windows then
+    options.ext_multigrid = true
+  end
   if options.ext_multigrid then
     options.ext_newgrid = true
     self._multigrid = true
