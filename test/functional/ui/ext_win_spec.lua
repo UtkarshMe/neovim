@@ -125,11 +125,29 @@ describe('In ext-win mode', function()
         eq(0, screen.split.flags)
         eq(2, screen.split.old_win[2])
         eq(3, screen.split.new_win[2])
-        -- TODO
-        --screen:try_resize_grid(screen.split.old_win[2], 30, 30)
-        --screen:try_resize_grid(screen.split.new_win[2], 30, 30)
-        --screen:snapshot_util()
       end)
+      screen:try_resize_grid(screen.split.old_win[2], 10, 5)
+      screen:try_resize_grid(screen.split.new_win[2], 10, 5)
+      screen:expect([[
+      ## grid 1
+                       |
+                       |
+                       |
+        {3:[No Name]      }|
+                       |
+      ## grid 2
+                  |
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+      ## grid 3
+        ^          |
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+      ]])
 
       command('vsplit')
       screen:expect([[
@@ -140,10 +158,17 @@ describe('In ext-win mode', function()
         {3:[No Name]      }|
                        |
       ## grid 2
-                       |
-        {2:~              }|
-        {2:~              }|
+                  |
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
       ## grid 3
+                  |
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
       ## grid 4
       ]], nil, nil, function()
         eq(2, screen.split.flags)
@@ -151,11 +176,45 @@ describe('In ext-win mode', function()
         eq(3, screen.split.old_win[2])
         iswin(screen.split.new_win[1])
         eq(4, screen.split.new_win[2])
-        -- TODO
-        --screen:try_resize_grid(screen.split.old_win[2], 10, 10)
-        --screen:try_resize_grid(screen.split.new_win[2], 10, 10)
-        --screen:snapshot_util()
       end)
+      screen:try_resize_grid(screen.split.old_win[2], 10, 10)
+      screen:try_resize_grid(screen.split.new_win[2], 10, 10)
+      screen:expect([[
+      ## grid 1
+                       |
+                       |
+                       |
+        {3:[No Name]      }|
+                       |
+      ## grid 2
+                  |
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+      ## grid 3
+                  |
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+      ## grid 4
+        ^          |
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+        {2:~         }|
+      ]])
     end)
   end)
 
