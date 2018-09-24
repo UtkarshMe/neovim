@@ -256,15 +256,15 @@ describe('tui', function()
 
   it('shows up in nvim_list_uis', function()
     feed_data(':echo map(nvim_list_uis(), {k,v -> sort(items(v))})\013')
-    screen:expect([=[
+    screen:expect([[
       [[['ext_cmdline', v:false], ['ext_hlstate', v:fals|
       e], ['ext_multigrid', v:false], ['ext_newgrid', v:|
       true], ['ext_popupmenu', v:false], ['ext_tabline',|
-       v:false], ['ext_wildmenu', v:false], ['height', 6|
-      ], ['rgb', v:false], ['width', 50]]]              |
-      {10:Press ENTER or type command to continue}{1: }          |
+       v:false], ['ext_wildmenu', v:false], ['ext_window|
+      s', v:false], ['height', 6], ['rgb', v:false], ['w|
+      {10:-- More --}{1: }                                       |
       {3:-- TERMINAL --}                                    |
-    ]=])
+    ]])
   end)
 end)
 
