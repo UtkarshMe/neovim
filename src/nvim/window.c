@@ -591,7 +591,7 @@ int win_split_ins(int size, int flags, win_T *new_wp, int dir)
   }
 
   if (ext_windows) {
-    // TODO(utkarshme): WHAT EVEN.
+    // do nothing
   } else if (flags & WSP_VERT) {
     int wmw1;
     int minwidth;
